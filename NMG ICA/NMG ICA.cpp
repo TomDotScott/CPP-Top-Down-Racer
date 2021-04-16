@@ -1,8 +1,6 @@
-#include <cmath>
 #include <iostream>
-#include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
-
+#include "Client.h"
 #include "Server.h"
 
 //const int num = 8; //checkpoints
@@ -38,54 +36,6 @@
 //};
 
 
-
-struct Client
-{
-	bool initialiseClient(unsigned short port)
-	{
-		server = sf::IpAddress::getLocalAddress();
-
-		// Connect to the server
-		if (socket.connect(server, port) != sf::Socket::Done)
-			return false;
-		
-		std::cout << "Client connected to server " << server << std::endl;
-		return true;
-	}
-
-	void update()
-	{
-		sendMessage();
-		receiveMessage();
-	}
-
-	bool receiveMessage()
-	{
-		// Receive a message from the server
-		char in[128];
-		std::size_t received;
-		if (socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-			return false;
-		std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
-		return true;
-	}
-
-	bool sendMessage()
-	{
-		// Send an answer to the server
-		const char out[] = "Hi, I'm a client";
-		if (socket.send(out, sizeof(out)) != sf::Socket::Done)
-			return false;
-		
-		std::cout << "Message sent to the server: '" << out << "'\tMeasuring: " << sizeof(out) << " bytes... " << std::endl;
-		return true;
-	}
-	
-	sf::IpAddress server;
-	sf::TcpSocket socket;
-};
-
-
 int main()
 {
 	char cs{};
@@ -98,7 +48,7 @@ int main()
 
 	if(cs == 'c')
 	{
-		c.initialiseClient(25565);
+		c.Initialise(25565);
 	}else
 	{
 		s.InitialiseServer(25565);
@@ -110,8 +60,7 @@ int main()
 	{
 		if(cs == 'c')
 		{
-			c.sendMessage();
-			c.receiveMessage();
+			c.Update();
 		}else
 		{
 			s.RunTcpServer(25565);

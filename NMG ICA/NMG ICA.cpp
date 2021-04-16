@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
 
+#include "Server.h"
+
 //const int num = 8; //checkpoints
 //// TODO: use checkpoint to make sure we are on the track.
 //// Slow speed when not on the track.
@@ -36,64 +38,53 @@
 //};
 
 
-void runTcpServer(unsigned short port)
+
+struct Client
 {
-	// Create a server socket to accept new connections
-	sf::TcpListener listener;
+	bool initialiseClient(unsigned short port)
+	{
+		server = sf::IpAddress::getLocalAddress();
 
-	// Listen to the given port for incoming connections
-	if (listener.listen(port) != sf::Socket::Done)
-		return;
-	std::cout << "Server is listening to port " << port << ", waiting for connections... " << std::endl;
+		// Connect to the server
+		if (socket.connect(server, port) != sf::Socket::Done)
+			return false;
+		
+		std::cout << "Client connected to server " << server << std::endl;
+		return true;
+	}
 
-	// Wait for a connection
-	sf::TcpSocket socket;
-	if (listener.accept(socket) != sf::Socket::Done)
-		return;
-	std::cout << "Client connected: " << socket.getRemoteAddress() << std::endl;
+	void update()
+	{
+		sendMessage();
+		receiveMessage();
+	}
 
-	// Send a message to the connected client
-	const char out[] = "Hi, I'm the server";
-	if (socket.send(out, sizeof(out)) != sf::Socket::Done)
-		return;
-	std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
+	bool receiveMessage()
+	{
+		// Receive a message from the server
+		char in[128];
+		std::size_t received;
+		if (socket.receive(in, sizeof(in), received) != sf::Socket::Done)
+			return false;
+		std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
+		return true;
+	}
 
-	// Receive a message back from the client
-	char in[128];
-	std::size_t received;
-	if (socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-		return;
-	std::cout << "Answer received from the client: \"" << in << "\"" << std::endl;
-}
-
-
-
-void runTcpClient(unsigned short port)
-{
-	// Ask for the server address
-	sf::IpAddress server = sf::IpAddress::getLocalAddress();
+	bool sendMessage()
+	{
+		// Send an answer to the server
+		const char out[] = "Hi, I'm a client";
+		if (socket.send(out, sizeof(out)) != sf::Socket::Done)
+			return false;
+		
+		std::cout << "Message sent to the server: '" << out << "'\tMeasuring: " << sizeof(out) << " bytes... " << std::endl;
+		return true;
+	}
 	
-	// Create a socket for communicating with the server
+	sf::IpAddress server;
 	sf::TcpSocket socket;
+};
 
-	// Connect to the server
-	if (socket.connect(server, port) != sf::Socket::Done)
-		return;
-	std::cout << "Connected to server " << server << std::endl;
-
-	// Receive a message from the server
-	char in[128];
-	std::size_t received;
-	if (socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-		return;
-	std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
-
-	// Send an answer to the server
-	const char out[] = "Hi, I'm a client";
-	if (socket.send(out, sizeof(out)) != sf::Socket::Done)
-		return;
-	std::cout << "Message sent to the server: \"" << out << "\"" << std::endl;
-}
 
 int main()
 {
@@ -101,17 +92,30 @@ int main()
 
 	std::cin >> cs;
 
-	if (cs == 's')
+	Server s;
+
+	Client c;
+
+	if(cs == 'c')
 	{
-		runTcpServer(25565);
-	} else
+		c.initialiseClient(25565);
+	}else
 	{
-		runTcpClient(25565);
+		s.InitialiseServer(25565);
 	}
 
+	bool clientConnected = false;
+	
 	while (true)
 	{
-		
+		if(cs == 'c')
+		{
+			c.sendMessage();
+			c.receiveMessage();
+		}else
+		{
+			s.RunTcpServer(25565);
+		}
 	}
 	
 	//sf::RenderWindow window(sf::VideoMode(800, 600), "Server/Client Test");

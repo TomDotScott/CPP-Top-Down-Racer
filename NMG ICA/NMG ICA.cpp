@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <SFML/Network.hpp>
 #include "Client.h"
@@ -37,15 +38,40 @@
 
 int main()
 {
-	Client c;
+	Client* c = Client::CreateClient(25565);
 
-	c.Initialise(25565);
+	assert(c);
+	
+	sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
 
-	while (true)
+	sf::Clock clock;
+	
+	// run the program as long as the window is open
+	while (window.isOpen())
 	{
-		c.Update();
+		// check all the window's events that were triggered since the last iteration of the loop
+		sf::Event e{};
+		while (window.pollEvent(e))
+		{
+			// "close requested" event: we close the window
+			if (e.type == sf::Event::Closed)
+				window.close();
+		}
+
+		window.clear();
+
+		sf::Time time = clock.restart();
+		const float dt = time.asSeconds();
+
+		c->Update(dt);
+		c->Render(window);
+
+		window.display();
 	}
 
+
+	delete c;
+	
 	//sf::RenderWindow window(sf::VideoMode(800, 600), "Server/Client Test");
 	//
 	//// run the program as long as the window is open

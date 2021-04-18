@@ -1,7 +1,6 @@
 #include <iostream>
 #include <SFML/Network.hpp>
 #include "Client.h"
-#include "Server.h"
 
 //const int num = 8; //checkpoints
 //// TODO: use checkpoint to make sure we are on the track.
@@ -38,35 +37,15 @@
 
 int main()
 {
-	char cs{};
-
-	std::cin >> cs;
-
-	Server s;
-
 	Client c;
 
-	if(cs == 'c')
-	{
-		c.Initialise(25565);
-	}else
-	{
-		s.InitialiseServer(25565);
-	}
+	c.Initialise(25565);
 
-	bool clientConnected = false;
-	
 	while (true)
 	{
-		if(cs == 'c')
-		{
-			c.Update();
-		}else
-		{
-			s.RunTcpServer(25565);
-		}
+		c.Update();
 	}
-	
+
 	//sf::RenderWindow window(sf::VideoMode(800, 600), "Server/Client Test");
 	//
 	//// run the program as long as the window is open
@@ -89,7 +68,7 @@ int main()
 	//	
 	//	window.display();
 	//}
-	
+
 	//RenderWindow app(VideoMode(640, 480), "Car Racing Game!");
 	//app.setFramerateLimit(60);
 	//Texture t1, t2;

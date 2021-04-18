@@ -2,7 +2,14 @@
 
 #include <iostream>
 
-bool Server::InitialiseServer(unsigned short port)
+// TODO: Factory pattern creation should be the Initialise function below
+// Return a heap allocated Server, or a nullptr if it fails :P
+//Server* Server::createServer(unsigned short port)
+//{
+//	
+//}
+
+bool Server::Initialise(unsigned short port)
 {
 	// Listen to the given port for incoming connections
 	if (m_listener.listen(port, sf::IpAddress::getLocalAddress()) != sf::Socket::Done)
@@ -14,7 +21,7 @@ bool Server::InitialiseServer(unsigned short port)
 	return true;
 }
 
-void Server::RunTcpServer(unsigned short port)
+void Server::Update(unsigned short port)
 {
 	if (!m_connected)
 	{
@@ -45,13 +52,18 @@ bool Server::SendMessage()
 	return true;
 }
 
+
 bool Server::ReceiveMessage()
 {
 	std::cout << "Seeing if the server has received anything..." << std::endl;
-	
+
+	// TODO: SWITCH TO USING PACKETS
+	// https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1SocketSelector.php for multiple clients
+
 	// Receive a message back from the client
 	char in[128];
-	std::size_t received;
+	
+	size_t received;
 
 	if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
 		return false;

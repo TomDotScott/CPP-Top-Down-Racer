@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{d87c797c-0cdd-4bdc-8134-9903bc5f9150}</ProjectGuid>
-    <RootNamespace>NMGICA</RootNamespace>
+    <ProjectGuid>{3be446d1-63df-450e-841d-fceaceec88a8}</ProjectGuid>
+    <RootNamespace>Server</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -139,11 +139,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp" />
-    <ClCompile Include="NMG ICA.cpp" />
+    <ClInclude Include="..\NMG ICA\Server.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client.h" />
+    <ClCompile Include="..\NMG ICA\Server.cpp" />
+    <ClCompile Include="..\NMG ICA\ServerMain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

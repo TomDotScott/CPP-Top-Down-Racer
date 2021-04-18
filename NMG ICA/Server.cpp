@@ -41,14 +41,14 @@ void Server::Update(unsigned short port)
 
 bool Server::SendMessage()
 {
-	std::cout << "Sending a message to the connected clients..." << std::endl;
-	
-	// Send a message to the connected client
-	const char out[] = "Hi, I'm the server";
-	if (m_socket.send(out, sizeof(out)) != sf::Socket::Done)
-		return false;
+	//std::cout << "Sending a message to the connected clients..." << std::endl;
+	//
+	//// Send a message to the connected client
+	//const char out[] = "Hi, I'm the server";
+	//if (m_socket.send(out, sizeof(out)) != sf::Socket::Done)
+	//	return false;
 
-	std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
+	//std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
 	return true;
 }
 
@@ -60,15 +60,30 @@ bool Server::ReceiveMessage()
 	// TODO: SWITCH TO USING PACKETS
 	// https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1SocketSelector.php for multiple clients
 
-	// Receive a message back from the client
-	char in[128];
-	
-	size_t received;
+	//// Receive a message back from the client
+	//char in[128];
+	//
+	//size_t received;
 
-	if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
+	//if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
+	//	return false;
+
+	//std::cout << "Answer received from the client: \"" << in << "\nMeasuring " << received << " Bytes" << std::endl;
+
+	sf::Packet p;
+
+	if(m_socket.receive(p) != sf::Socket::Done)
+	{
 		return false;
+	}
 
-	std::cout << "Answer received from the client: \"" << in << "\nMeasuring " << received << " Bytes" << std::endl;
+	float x, y;
+
+	p >> x >> y;
+
+	std::cout << "Data received from the client measuring " << p.getDataSize() << " bytes" << std::endl;
+	
+	std::cout << "The shape is at: " << x << ", " << y << std::endl;
 
 	return true;
 }

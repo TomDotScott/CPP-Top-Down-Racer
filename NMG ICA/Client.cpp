@@ -18,13 +18,16 @@ Client* Client::CreateClient(const unsigned short port)
 
 bool Client::Initialise(const unsigned short port)
 {
-	//m_server = sf::IpAddress::getLocalAddress();
+	m_server = sf::IpAddress::getLocalAddress();
 
-	//// Connect to the server
-	//if (m_socket.connect(m_server, port) != sf::Socket::Done)
-	//	return false;
+	// Connect to the server
+	if (m_socket.connect(m_server, port) != sf::Socket::Done)
+	{
+		std::cout << "Unable to connect to the server at address: " << m_server << std::endl;
+		return false;
+	}
 
-	//std::cout << "Client connected to server " << m_server << std::endl;
+	std::cout << "Client connected to server " << m_server << std::endl;
 	return true;
 }
 
@@ -51,8 +54,8 @@ void Client::Update(const float deltaTime)
 	}
 
 
-	//SendMessage();
-	//ReceiveMessage();
+	SendMessage();
+	ReceiveMessage();
 }
 
 void Client::Render(sf::RenderWindow& window)
@@ -62,27 +65,44 @@ void Client::Render(sf::RenderWindow& window)
 
 bool Client::ReceiveMessage()
 {
-	// Receive a message from the server
-	char in[128];
-	std::size_t received;
-	if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-		return false;
-	std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
+	//// Receive a message from the server
+	//char in[128];
+	//std::size_t received;
+	//if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
+	//	return false;
+	//std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
 	return true;
 }
 
 bool Client::SendMessage()
 {
+	sf::Packet packet;
+
+	// Push some data to the packet
+	const sf::Vector2f& position = m_shape.getPosition();
+
+	std::cout << "Shape is at: " << position.x << ", " << position.y << std::endl;
+	
+	packet << position.x << position.y;
+
+	if(m_socket.send(packet) != sf::Socket::Done)
+	{
+		return false;
+	}
+	
+	/*
 	// Send a message to the server
 	std::cout << "Send a message: ";
-
+	
 	std::string message;
 	std::cin >> message;
 
 	if (m_socket.send(message.c_str(), sizeof(message.c_str())) != sf::Socket::Done)
 		return false;
 
-	std::cout << "Message sent to the server: '" << message << "'\tMeasuring: " << sizeof(message.c_str()) << " bytes... " << std::endl;
+	std::cout << "Message sent to the server: '" << message << "'\tMeasuring: " << sizeof(message.c_str()) << " bytes... " << std::endl;*/
+	
+	std::cout << "Packet sent to the server measuring: " << packet.getDataSize() << " bytes... " << std::endl;
 	return true;
 }
 
@@ -91,4 +111,5 @@ Client::Client() :
 	m_speed(50.f)
 {
 	m_shape.setFillColor(sf::Color::Blue);
+	m_shape.setPosition({ 100.f, 250.f });
 }

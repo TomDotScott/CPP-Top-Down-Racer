@@ -1,6 +1,7 @@
 ﻿#include "Client.h"
 
 #include <iostream>
+#include <thread>
 
 Client* Client::CreateClient(const unsigned short port)
 {
@@ -8,6 +9,7 @@ Client* Client::CreateClient(const unsigned short port)
 
 	if (c->Initialise(port))
 	{
+		c->m_socket.setBlocking(false);
 		return c;
 	} else
 	{
@@ -55,6 +57,7 @@ void Client::Update(const float deltaTime)
 
 
 	SendMessage();
+
 	ReceiveMessage();
 }
 
@@ -66,11 +69,11 @@ void Client::Render(sf::RenderWindow& window)
 bool Client::ReceiveMessage()
 {
 	//// Receive a message from the server
-	//char in[128];
-	//std::size_t received;
-	//if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-	//	return false;
-	//std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
+	char in[128];
+	std::size_t received;
+	if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
+		return false;
+	std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
 	return true;
 }
 
@@ -108,7 +111,7 @@ bool Client::SendMessage()
 
 Client::Client() :
 	m_shape({ 50.f, 50.f }),
-	m_speed(50.f)
+	m_speed(100.f)
 {
 	m_shape.setFillColor(sf::Color::Blue);
 	m_shape.setPosition({ 100.f, 250.f });

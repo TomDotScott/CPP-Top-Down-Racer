@@ -26,6 +26,8 @@ private:
 	sf::TcpListener m_listener;
 
 	sf::TcpSocket m_socket;
-
+	
+	sf::Vector2f m_prevPlayerPosition;
+	
 	bool m_connected = false;
 };

@@ -55,8 +55,6 @@ bool Server::SendMessage()
 
 bool Server::ReceiveMessage()
 {
-	std::cout << "Seeing if the server has received anything..." << std::endl;
-
 	// TODO: SWITCH TO USING PACKETS
 	// https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1SocketSelector.php for multiple clients
 
@@ -81,9 +79,16 @@ bool Server::ReceiveMessage()
 
 	p >> x >> y;
 
-	std::cout << "Data received from the client measuring " << p.getDataSize() << " bytes" << std::endl;
-	
-	std::cout << "The shape is at: " << x << ", " << y << std::endl;
+	const sf::Vector2f playerPos(x, y);
 
+	if(playerPos != m_prevPlayerPosition)
+	{
+		std::cout << "Data received from the client measuring " << p.getDataSize() << " bytes" << std::endl;
+
+		std::cout << "The shape is at: " << x << ", " << y << std::endl;
+	}
+
+	m_prevPlayerPosition = playerPos;
+	
 	return true;
 }

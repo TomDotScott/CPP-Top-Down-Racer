@@ -16,9 +16,18 @@ Server* Server::CreateServer(const unsigned short port)
 }
 
 Server::Server() :
-	m_connected(false)
+	m_connected(false),
+	m_nextValidID(0)
 {
 
+}
+
+Server::~Server()
+{
+	for (auto& connectedClient : m_connectedClients)
+	{
+		delete connectedClient;
+	}
 }
 
 bool Server::Initialise(const unsigned short port)
@@ -29,25 +38,58 @@ bool Server::Initialise(const unsigned short port)
 		return false;
 	}
 
+	// Add the listener to the selector
+	m_socketSelector.add(m_listener);
+	
 	std::cout << "Server is listening to port " << port << ", waiting for connections... " << std::endl;
 	return true;
 }
 
 void Server::Update(unsigned short port)
 {
-	if (!m_connected)
+	if (m_socketSelector.wait())
 	{
-		// Wait for a connection
-		if (m_listener.accept(m_socket) != sf::Socket::Done)
-			return;
+		// std::cout << "Waiting for data on any socket..." << std::endl;
+		if (m_socketSelector.isReady(m_listener))
+		{
+			// std::cout << "The listener is ready, testing to see if there's a connection..." << std::endl;
+			
+			// Create a new connection
+			auto* client = new sf::TcpSocket();
+			if (m_listener.accept(*client) == sf::Socket::Done)
+			{
 
-		std::cout << "Client connected: " << m_socket.getRemoteAddress() << std::endl;
-		m_connected = true;
-	} else
-	{
-		ReceiveMessage();
+				sf::Packet packet;
+				std::string id;
 
-		SendMessage();
+				if (client->receive(packet) == sf::Socket::Done)
+				{
+					packet >> id;
+				}
+
+				std::cout << id << " has connected to the server" << std::endl;
+				m_connectedClients.push_back(client);
+
+				// Add the new client to the selector - this means we can update all clients
+				m_socketSelector.add(*client);
+			}else
+			{
+				std::cout << "A client had an error connecting..." << std::endl;
+				delete client;
+			}
+
+			// Wait for a connection
+			/*if (m_listener.accept(m_socketSelector) != sf::Socket::Done)
+				return;
+
+			std::cout << "Client connected: " << m_socketSelector.getRemoteAddress() << std::endl;
+			m_connected = true;*/
+		} else
+		{
+			ReceiveMessage();
+
+			SendMessage();
+		}
 	}
 }
 
@@ -67,22 +109,37 @@ bool Server::SendMessage()
 
 bool Server::ReceiveMessage()
 {
-	// TODO: SWITCH TO USING PACKETS
 	// https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1SocketSelector.php for multiple clients
 
-	//// Receive a message back from the client
-	//char in[128];
-	//
-	//size_t received;
+	// Loop through each client and use our new, fancy, socket selector
+	for (auto& connectedClient : m_connectedClients)
+	{
+		if (m_socketSelector.isReady(*connectedClient))
+		{
+			sf::Packet packet;
+			if (connectedClient->receive(packet) == sf::Socket::Done)
+			{
+				float x, y;
+				packet >> x >> y;
 
-	//if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-	//	return false;
+				const sf::Vector2f playerPos(x, y);
 
-	//std::cout << "Answer received from the client: \"" << in << "\nMeasuring " << received << " Bytes" << std::endl;
+				/*if (playerPos != m_prevPlayerPosition)
+				{
+					std::cout << "Data received from the client measuring " << packet.getDataSize() << " bytes" << std::endl;
 
-	sf::Packet p;
+					std::cout << "The shape is at: " << x << ", " << y << std::endl;
+				}*/
 
-	if (m_socket.receive(p) != sf::Socket::Done)
+				// Now we have all the data from the packet, we need to send it to the other
+				// clients so they're up to date
+			}
+		}
+	}
+
+	/*sf::Packet p;
+
+	if (m_socketSelector.receive(p) != sf::Socket::Done)
 	{
 		return false;
 	}
@@ -100,7 +157,7 @@ bool Server::ReceiveMessage()
 		std::cout << "The shape is at: " << x << ", " << y << std::endl;
 	}
 
-	m_prevPlayerPosition = playerPos;
+	m_prevPlayerPosition = playerPos;*/
 
 	return true;
 }

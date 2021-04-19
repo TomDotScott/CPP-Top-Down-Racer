@@ -38,11 +38,16 @@
 
 int main()
 {
-	Client* c = Client::CreateClient(25565);
+	std::cout << "Enter a username: ";
+
+	std::string username;
+	std::cin >> username;
+	
+	Client* c = Client::CreateClient(username, 25565);
 
 	assert(c);
 	
-	sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
+	sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
 
 	sf::Clock clock;
 	

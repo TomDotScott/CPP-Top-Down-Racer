@@ -3,13 +3,12 @@
 #include <iostream>
 #include <thread>
 
-Client* Client::CreateClient(const unsigned short port)
+Client* Client::CreateClient(const std::string& username, const unsigned short port)
 {
 	auto* c = new Client();
 
-	if (c->Initialise(port))
+	if (c->Initialise(username, port))
 	{
-		c->m_socket.setBlocking(false);
 		return c;
 	} else
 	{
@@ -18,7 +17,7 @@ Client* Client::CreateClient(const unsigned short port)
 	}
 }
 
-bool Client::Initialise(const unsigned short port)
+bool Client::Initialise(const std::string& username, const unsigned short port)
 {
 	m_server = sf::IpAddress::getLocalAddress();
 
@@ -29,7 +28,13 @@ bool Client::Initialise(const unsigned short port)
 		return false;
 	}
 
-	std::cout << "Client connected to server " << m_server << std::endl;
+	sf::Packet id;
+	id << username;
+
+	m_socket.send(id);
+	m_socket.setBlocking(false);
+	
+	std::cout << username << " connected to server " << m_server << std::endl;
 	return true;
 }
 
@@ -84,7 +89,7 @@ bool Client::SendMessage()
 	// Push some data to the packet
 	const sf::Vector2f& position = m_shape.getPosition();
 
-	std::cout << "Shape is at: " << position.x << ", " << position.y << std::endl;
+	//std::cout << "Shape is at: " << position.x << ", " << position.y << std::endl;
 	
 	packet << position.x << position.y;
 
@@ -105,7 +110,8 @@ bool Client::SendMessage()
 
 	std::cout << "Message sent to the server: '" << message << "'\tMeasuring: " << sizeof(message.c_str()) << " bytes... " << std::endl;*/
 	
-	std::cout << "Packet sent to the server measuring: " << packet.getDataSize() << " bytes... " << std::endl;
+	//std::cout << "Packet sent to the server measuring: " << packet.getDataSize() << " bytes... " << std::endl;
+	
 	return true;
 }
 

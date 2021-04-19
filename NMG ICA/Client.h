@@ -5,7 +5,7 @@
 class Client
 {
 public:
-	static Client* CreateClient(unsigned short port);
+	static Client* CreateClient(const std::string& username, unsigned short port);
 
 	void Update(float deltaTime);
 	
@@ -17,7 +17,7 @@ private:
 	sf::RectangleShape m_shape;
 	float m_speed;
 	
-	bool Initialise(unsigned short port);
+	bool Initialise(const std::string& username, unsigned short port);
 	bool ReceiveMessage();
 	bool SendMessage();
 	Client();

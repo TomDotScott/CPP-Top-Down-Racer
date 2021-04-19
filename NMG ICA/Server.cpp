@@ -2,14 +2,26 @@
 
 #include <iostream>
 
-// TODO: Factory pattern creation should be the Initialise function below
-// Return a heap allocated Server, or a nullptr if it fails :P
-//Server* Server::createServer(unsigned short port)
-//{
-//	
-//}
+Server* Server::CreateServer(const unsigned short port)
+{
+	auto* s = new Server();
+	if (s->Initialise(port))
+	{
+		return s;
+	} else
+	{
+		delete s;
+		return nullptr;
+	}
+}
 
-bool Server::Initialise(unsigned short port)
+Server::Server() :
+	m_connected(false)
+{
+
+}
+
+bool Server::Initialise(const unsigned short port)
 {
 	// Listen to the given port for incoming connections
 	if (m_listener.listen(port, sf::IpAddress::getLocalAddress()) != sf::Socket::Done)
@@ -70,7 +82,7 @@ bool Server::ReceiveMessage()
 
 	sf::Packet p;
 
-	if(m_socket.receive(p) != sf::Socket::Done)
+	if (m_socket.receive(p) != sf::Socket::Done)
 	{
 		return false;
 	}
@@ -81,7 +93,7 @@ bool Server::ReceiveMessage()
 
 	const sf::Vector2f playerPos(x, y);
 
-	if(playerPos != m_prevPlayerPosition)
+	if (playerPos != m_prevPlayerPosition)
 	{
 		std::cout << "Data received from the client measuring " << p.getDataSize() << " bytes" << std::endl;
 
@@ -89,6 +101,6 @@ bool Server::ReceiveMessage()
 	}
 
 	m_prevPlayerPosition = playerPos;
-	
+
 	return true;
 }

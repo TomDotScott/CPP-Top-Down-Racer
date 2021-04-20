@@ -42,25 +42,34 @@ int main()
 
 	std::string username;
 	std::cin >> username;
-	
+
 	Client* c = Client::CreateClient(username, 25565);
 
 	assert(c);
-	
+
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
 
 	sf::Clock clock;
-	
+
+	bool inFocus = true;
+
 	// run the program as long as the window is open
 	while (window.isOpen())
 	{
 		// check all the window's events that were triggered since the last iteration of the loop
 		sf::Event e{};
+		
 		while (window.pollEvent(e))
 		{
 			// "close requested" event: we close the window
 			if (e.type == sf::Event::Closed)
 				window.close();
+
+			if (e.type == sf::Event::GainedFocus)
+				inFocus = true;
+
+			if (e.type == sf::Event::LostFocus)
+				inFocus = false;
 		}
 
 		window.clear();
@@ -68,7 +77,7 @@ int main()
 		sf::Time time = clock.restart();
 		const float dt = time.asSeconds();
 
-		c->Update(dt);
+		c->Update(dt, inFocus);
 		c->Render(window);
 
 		window.display();
@@ -76,7 +85,7 @@ int main()
 
 
 	delete c;
-	
+
 	//sf::RenderWindow window(sf::VideoMode(800, 600), "Server/Client Test");
 	//
 	//// run the program as long as the window is open

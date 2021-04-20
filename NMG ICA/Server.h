@@ -12,11 +12,7 @@ public:
 private:
 	sf::TcpListener m_listener;
 	sf::SocketSelector m_socketSelector;
-	sf::Vector2f m_prevPlayerPosition;
-
 	std::vector<sf::TcpSocket*> m_connectedClients;
-	bool m_connected;
-	int m_nextValidID;
 	
 	Server();
 	~Server();

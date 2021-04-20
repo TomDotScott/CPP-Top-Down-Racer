@@ -25,7 +25,8 @@ private:
 	float m_speed;
 	sf::Vector2f m_previousPosition;
 	std::string m_id;
-
+	float m_packetDelay;
+	float m_packetTimer;
 	
 	bool Initialise(unsigned short port);
 	bool ReceiveMessage();

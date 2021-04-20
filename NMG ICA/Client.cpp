@@ -64,15 +64,27 @@ void Client::Update(const float deltaTime, const bool windowInFocus)
 		}
 	}
 
-	// If the position was the same as the last frame, don't send the packets
-	if (m_shape.getPosition() != m_previousPosition)
+	// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
+	m_packetTimer += deltaTime;
+
+	std::cout << m_packetTimer << std::endl;
+
+	if (m_packetTimer >= m_packetDelay)
 	{
-		SendMessage();
+		std::cout << "Sending packet to server" << std::endl;
+		
+		// If the position was the same as the last frame, don't send the packets
+		if (m_shape.getPosition() != m_previousPosition)
+		{
+			SendMessage();
+			m_previousPosition = m_shape.getPosition();
+		}
+
+		m_packetTimer = 0.f;
 	}
 
 	ReceiveMessage();
 
-	m_previousPosition = m_shape.getPosition();
 }
 
 void Client::Render(sf::RenderWindow& window)
@@ -93,18 +105,18 @@ bool Client::ReceiveMessage()
 
 	inPacket >> code >> id >> x >> y;
 
-	if(code == static_cast<uint8_t>(ePacketType::e_UpdatePosition))
+	if (code == static_cast<uint8_t>(ePacketType::e_UpdatePosition))
 	{
 		std::cout << "Updating player two's position" << std::endl;
-		
+
 		// Update player 2's position based on the data received from the server
 		const sf::Vector2f p2Pos(x, y);
 
 		m_playerTwoShape.setPosition(p2Pos);
 	}
-	
+
 	return true;
-	
+
 	//// Receive a message from the server
 	//char in[128];
 	//std::size_t received;
@@ -151,7 +163,9 @@ Client::Client(std::string username) :
 	m_shape({ 50.f, 50.f }),
 	m_playerTwoShape({ 50.f, 50.f }),
 	m_speed(100.f),
-	m_id(std::move(username))
+	m_id(std::move(username)),
+	m_packetDelay(0.033f),
+	m_packetTimer(0.f)
 {
 	m_shape.setFillColor(sf::Color::Blue);
 	m_shape.setPosition({ 100.f, 250.f });

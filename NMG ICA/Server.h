@@ -13,6 +13,7 @@ private:
 	sf::TcpListener m_listener;
 	sf::SocketSelector m_socketSelector;
 	std::vector<sf::TcpSocket*> m_connectedClients;
+	unsigned m_maxClients;
 	
 	Server();
 	~Server();

@@ -4,18 +4,21 @@
 #include <thread>
 #include <utility>
 
+#include "../Shared Files/Data.h"
+
 Client* Client::CreateClient(const std::string& username, const unsigned short port)
 {
 	auto* c = new Client(username);
 
 	if (c->Initialise(port))
 	{
+		std::cout << "Player " << username << " created successfully" << std::endl;
 		return c;
-	} else
-	{
-		delete c;
-		return nullptr;
 	}
+
+	std::cout << "ERROR WHILST CREATING THE PLAYER " << username << std::endl;
+	delete c;
+	return nullptr;
 }
 
 bool Client::Initialise(const unsigned short port)
@@ -29,68 +32,95 @@ bool Client::Initialise(const unsigned short port)
 		return false;
 	}
 
-	sf::Packet id;
-	id << static_cast<uint8_t>(ePacketType::e_FirstConnection) << m_id;
+	sf::Packet packet;
 
-	m_socket.send(id);
+	const DataPacket dp(FIRST_CONNECTION, m_userName);
+
+	packet << dp;
+
+	m_socket.send(packet);
 	m_socket.setBlocking(false);
 
-	std::cout << m_id << " connected to server " << m_server << std::endl;
+	std::cout << m_userName << " connected to server " << m_server << std::endl;
+
+	sf::Packet p;
+
+	sf::Clock clock{};
+	float elapsedTime = 0.f;
+	while (m_socket.receive(p) != sf::Socket::Done)
+	{
+		elapsedTime += clock.restart().asSeconds();
+
+		std::cout << " waiting for the player number... " << elapsedTime << std::endl;
+
+		if (elapsedTime >= 10.f)
+		{
+			std::cout << "Timeout! " << std::endl;
+			return false;
+		}
+	}
+
+	p >> m_playerNumber;
+
+	std::cout << "The server told me I am player number: " << m_playerNumber << std::endl;
+
 	return true;
 }
 
 void Client::Update(const float deltaTime, const bool windowInFocus)
 {
+	bool playerMoved = false;
+
 	if (windowInFocus)
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
 		{
-			m_shape.move({ 0.f, -m_speed * deltaTime });
+			m_players[m_playerNumber].move({ 0.f, -m_speed * deltaTime });
+			playerMoved = true;
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
 		{
-			m_shape.move({ 0.f, m_speed * deltaTime });
+			m_players[m_playerNumber].move({ 0.f, m_speed * deltaTime });
+			playerMoved = true;
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
 		{
-			m_shape.move({ -m_speed * deltaTime, 0.f });
+			m_players[m_playerNumber].move({ -m_speed * deltaTime, 0.f });
+			playerMoved = true;
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
 		{
-			m_shape.move({ m_speed * deltaTime, 0.f });
+			m_players[m_playerNumber].move({ m_speed * deltaTime, 0.f });
+			playerMoved = true;
 		}
 	}
 
 	// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
 	m_packetTimer += deltaTime;
 
-	std::cout << m_packetTimer << std::endl;
-
 	if (m_packetTimer >= m_packetDelay)
 	{
-		std::cout << "Sending packet to server" << std::endl;
-		
 		// If the position was the same as the last frame, don't send the packets
-		if (m_shape.getPosition() != m_previousPosition)
+		if (playerMoved)
 		{
 			SendMessage();
-			m_previousPosition = m_shape.getPosition();
 		}
 
 		m_packetTimer = 0.f;
 	}
 
 	ReceiveMessage();
-
 }
 
 void Client::Render(sf::RenderWindow& window)
 {
-	window.draw(m_shape);
-	window.draw(m_playerTwoShape);
+	for (const auto& shape : m_players)
+	{
+		window.draw(shape);
+	}
 }
 
 bool Client::ReceiveMessage()
@@ -99,77 +129,83 @@ bool Client::ReceiveMessage()
 	if (m_socket.receive(inPacket) != sf::Socket::Done)
 		return false;
 
-	uint8_t code{};
-	std::string id;
-	float x, y;
+	DataPacket dp;
 
-	inPacket >> code >> id >> x >> y;
+	inPacket >> dp;
 
-	if (code == static_cast<uint8_t>(ePacketType::e_UpdatePosition))
+	std::cout << "Received a packet from " << dp.m_userName << std::endl;
+
+	if (dp.m_type == UPDATE_POSITION)
 	{
-		std::cout << "Updating player two's position" << std::endl;
-
-		// Update player 2's position based on the data received from the server
-		const sf::Vector2f p2Pos(x, y);
-
-		m_playerTwoShape.setPosition(p2Pos);
+		m_players[dp.m_playerNum].setPosition(dp.m_x, dp.m_y);
 	}
 
-	return true;
+	//if (code == static_cast<uint8_t>(ePacketType::e_UpdatePosition))
+	//{
+	//	std::cout << "Updating player two's position" << std::endl;
 
-	//// Receive a message from the server
-	//char in[128];
-	//std::size_t received;
-	//if (m_socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-	//	return false;
-	//std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
-	//return true;
+	//	// Update player 2's position based on the data received from the server
+	//	const sf::Vector2f p2Pos(x, y);
+
+	//	m_playerTwoShape.setPosition(p2Pos);
+	//}
+
+	return true;
 }
 
 bool Client::SendMessage()
 {
-	sf::Packet packet;
-
 	// Push some data to the packet
-	const sf::Vector2f& position = m_shape.getPosition();
+	const sf::Vector2f& position = m_players[m_playerNumber].getPosition();
 
-	//std::cout << "Shape is at: " << position.x << ", " << position.y << std::endl;
+	sf::Packet packet;
+	const DataPacket dp(UPDATE_POSITION, m_userName, m_playerNumber, position.x, position.y);
 
-	packet << static_cast<uint8_t>(ePacketType::e_UpdatePosition) << m_id << position.x << position.y;
+	packet << dp;
 
 	if (m_socket.send(packet) != sf::Socket::Done)
 	{
 		return false;
 	}
 
-	/*
-	// Send a message to the server
-	std::cout << "Send a message: ";
-
-	std::string message;
-	std::cin >> message;
-
-	if (m_socket.send(message.c_str(), sizeof(message.c_str())) != sf::Socket::Done)
-		return false;
-
-	std::cout << "Message sent to the server: '" << message << "'\tMeasuring: " << sizeof(message.c_str()) << " bytes... " << std::endl;*/
-
-	//std::cout << "Packet sent to the server measuring: " << packet.getDataSize() << " bytes... " << std::endl;
-
 	return true;
 }
 
 Client::Client(std::string username) :
-	m_shape({ 50.f, 50.f }),
-	m_playerTwoShape({ 50.f, 50.f }),
+	m_playerNumber(0),
 	m_speed(100.f),
-	m_id(std::move(username)),
+	m_userName(std::move(username)),
 	m_packetDelay(0.033f),
 	m_packetTimer(0.f)
 {
-	m_shape.setFillColor(sf::Color::Blue);
-	m_shape.setPosition({ 100.f, 250.f });
+	sf::RectangleShape shape;
+	shape.setFillColor(sf::Color::Red);
+	m_players.push_back(shape);
 
-	m_playerTwoShape.setFillColor(sf::Color::Red);
-	m_playerTwoShape.setPosition({ 100.f, 250.f });
+	shape.setFillColor(sf::Color::Blue);
+	m_players.push_back(shape);
+
+	shape.setFillColor(sf::Color::Yellow);
+	m_players.push_back(shape);
+
+	shape.setFillColor(sf::Color::Magenta);
+	m_players.push_back(shape);
+
+	shape.setFillColor(sf::Color::Cyan);
+	m_players.push_back(shape);
+
+	shape.setFillColor(sf::Color::White);
+	m_players.push_back(shape);
+
+	shape.setFillColor(sf::Color::Green);
+	m_players.push_back(shape);
+
+	shape.setFillColor({ 255, 165, 0 });
+	m_players.push_back(shape);
+
+	for (int i = 0; i < 8; ++i)
+	{
+		m_players[i].setSize({ 50.f, 50.f });
+		m_players[i].setPosition(i * 50.f, 300.f);
+	}
 }

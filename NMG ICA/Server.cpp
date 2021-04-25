@@ -1,5 +1,5 @@
 ﻿#include "Server.h"
-
+#include "../Shared Files/Data.h"
 #include <iostream>
 
 Server* Server::CreateServer(const unsigned short port)
@@ -15,7 +15,8 @@ Server* Server::CreateServer(const unsigned short port)
 	}
 }
 
-Server::Server()
+Server::Server() :
+	m_maxClients(2)
 {
 
 }
@@ -58,34 +59,42 @@ void Server::Update(unsigned short port)
 			{
 
 				sf::Packet packet;
-				uint8_t packetCode{};
-				std::string id;
+				DataPacket dp;
 
 				if (client->receive(packet) == sf::Socket::Done)
 				{
-					packet >> packetCode >> id;
+					packet >> dp;
 				}
 
-				if (packetCode == 0)
+				if (m_connectedClients.size() < m_maxClients)
 				{
-					std::cout << id << " has connected to the server" << std::endl;
-					m_connectedClients.push_back(client);
+					if (dp.m_type == FIRST_CONNECTION)
+					{
+						std::cout << dp.m_userName << " has connected to the server" << std::endl;
+						m_connectedClients.push_back(client);
 
-					// Add the new client to the selector - this means we can update all clients
-					m_socketSelector.add(*client);
+						// Add the new client to the selector - this means we can update all clients
+						m_socketSelector.add(*client);
+
+						// Tell the client which player it is
+						sf::Packet p;
+						const int  playerNum = m_connectedClients.size() - 1;
+						p << static_cast<uint8_t>(playerNum);
+
+						std::cout << "Telling " << dp.m_userName << " that they are player: " << playerNum << std::endl;
+
+						client->send(p);
+					}
+				}else
+				{
+					std::cout << "MAXIMUM AMOUNT OF CLIENTS CONNECTED" << std::endl;
+					delete client;
 				}
 			} else
 			{
 				std::cout << "A client had an error connecting..." << std::endl;
 				delete client;
 			}
-
-			// Wait for a connection
-			/*if (m_listener.accept(m_socketSelector) != sf::Socket::Done)
-				return;
-
-			std::cout << "Client connected: " << m_socketSelector.getRemoteAddress() << std::endl;
-			m_connected = true;*/
 		} else
 		{
 			// https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1SocketSelector.php for multiple clients
@@ -98,20 +107,19 @@ void Server::Update(unsigned short port)
 					sf::Packet packet;
 					if (m_connectedClients[i]->receive(packet) == sf::Socket::Done)
 					{
-						uint8_t packetCode{};
-						std::string id{};
-						float x, y;
-						packet >> packetCode >> id >> x >> y;
+						DataPacket dp;
+						packet >> dp;
 
-						// TODO: Don't hard-code the codes... Try and use the enum in the server and the client
-						if (packetCode == 1)
+						std::cout << "Received a message from: " << dp.m_userName << std::endl;
+						
+						if (dp.m_type == UPDATE_POSITION)
 						{
-							const sf::Vector2f playerPos(x, y);
-							std::cout << id << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
+							const sf::Vector2f playerPos(dp.m_x, dp.m_y);
+							std::cout << dp.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
 
 							sf::Packet sendPacket;
 
-							sendPacket << static_cast<uint8_t>(1) << id << x << y;
+							sendPacket << dp;
 							// update the other connected clients
 							for (int j = 0; j < m_connectedClients.size(); ++j)
 							{
@@ -121,17 +129,6 @@ void Server::Update(unsigned short port)
 								}
 							}
 						}
-
-
-						/*if (playerPos != m_prevPlayerPosition)
-						{
-							std::cout << "Data received from the client measuring " << packet.getDataSize() << " bytes" << std::endl;
-
-							std::cout << "The shape is at: " << x << ", " << y << std::endl;
-						}*/
-
-						// Now we have all the data from the packet, we need to send it to the other
-						// clients so they're up to date
 					}
 				}
 			}

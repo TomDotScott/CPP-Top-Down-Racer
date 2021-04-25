@@ -45,44 +45,45 @@ int main()
 
 	Client* c = Client::CreateClient(username, 25565);
 
-	assert(c);
-
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
-
-	sf::Clock clock;
-
-	bool inFocus = true;
-
-	// run the program as long as the window is open
-	while (window.isOpen())
+	if (c)
 	{
-		// check all the window's events that were triggered since the last iteration of the loop
-		sf::Event e{};
-		
-		while (window.pollEvent(e))
+
+		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
+
+		sf::Clock clock;
+
+		bool inFocus = true;
+
+		// run the program as long as the window is open
+		while (window.isOpen())
 		{
-			// "close requested" event: we close the window
-			if (e.type == sf::Event::Closed)
-				window.close();
+			// check all the window's events that were triggered since the last iteration of the loop
+			sf::Event e{};
 
-			if (e.type == sf::Event::GainedFocus)
-				inFocus = true;
+			while (window.pollEvent(e))
+			{
+				// "close requested" event: we close the window
+				if (e.type == sf::Event::Closed)
+					window.close();
 
-			if (e.type == sf::Event::LostFocus)
-				inFocus = false;
+				if (e.type == sf::Event::GainedFocus)
+					inFocus = true;
+
+				if (e.type == sf::Event::LostFocus)
+					inFocus = false;
+			}
+
+			window.clear();
+
+			sf::Time time = clock.restart();
+			const float dt = time.asSeconds();
+
+			c->Update(dt, inFocus);
+			c->Render(window);
+
+			window.display();
 		}
-
-		window.clear();
-
-		sf::Time time = clock.restart();
-		const float dt = time.asSeconds();
-
-		c->Update(dt, inFocus);
-		c->Render(window);
-
-		window.display();
 	}
-
 
 	delete c;
 

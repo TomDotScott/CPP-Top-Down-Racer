@@ -1,12 +1,7 @@
 ﻿#pragma once
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
-
-enum class ePacketType : uint8_t
-{
-	e_FirstConnection,
-	e_UpdatePosition
-};
+#include <utility>
 
 class Client
 {
@@ -20,11 +15,12 @@ public:
 private:
 	sf::IpAddress m_server;
 	sf::TcpSocket m_socket;
-	sf::RectangleShape m_shape;
-	sf::RectangleShape m_playerTwoShape;
+	
+	uint8_t m_playerNumber;
+	std::vector<sf::RectangleShape> m_players;
+	
 	float m_speed;
-	sf::Vector2f m_previousPosition;
-	std::string m_id;
+	std::string m_userName;
 	float m_packetDelay;
 	float m_packetTimer;
 	

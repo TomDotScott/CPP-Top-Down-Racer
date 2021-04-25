@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\NMG ICA\Server.h" />
+    <ClInclude Include="..\Shared Files\Data.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\NMG ICA\Server.cpp" />

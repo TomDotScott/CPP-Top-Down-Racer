@@ -26,5 +26,8 @@
     <ClInclude Include="Client.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Shared Files\Data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -16,7 +16,7 @@ Server* Server::CreateServer(const unsigned short port)
 }
 
 Server::Server() :
-	m_maxClients(2)
+	m_maxClients(8)
 {
 
 }
@@ -44,91 +44,77 @@ bool Server::Initialise(const unsigned short port)
 	return true;
 }
 
-void Server::Update(unsigned short port)
+void Server::CheckForNewClients()
 {
-	if (m_socketSelector.wait())
+	if (m_socketSelector.isReady(m_listener))
 	{
-		// std::cout << "Waiting for data on any socket..." << std::endl;
-		if (m_socketSelector.isReady(m_listener))
+		// Create a new connection
+		auto* client = new sf::TcpSocket();
+		if (m_listener.accept(*client) == sf::Socket::Done)
 		{
-			// std::cout << "The listener is ready, testing to see if there's a connection..." << std::endl;
+			sf::Packet packet;
+			DataPacket dp;
 
-			// Create a new connection
-			auto* client = new sf::TcpSocket();
-			if (m_listener.accept(*client) == sf::Socket::Done)
+			if (client->receive(packet) == sf::Socket::Done)
 			{
+				packet >> dp;
+			}
 
-				sf::Packet packet;
-				DataPacket dp;
-
-				if (client->receive(packet) == sf::Socket::Done)
+			if (m_connectedClients.size() < m_maxClients)
+			{
+				if (dp.m_type == FIRST_CONNECTION)
 				{
-					packet >> dp;
-				}
+					std::cout << dp.m_userName << " has connected to the server" << std::endl;
+					m_connectedClients.push_back(client);
 
-				if (m_connectedClients.size() < m_maxClients)
-				{
-					if (dp.m_type == FIRST_CONNECTION)
-					{
-						std::cout << dp.m_userName << " has connected to the server" << std::endl;
-						m_connectedClients.push_back(client);
+					// Add the new client to the selector - this means we can update all clients
+					m_socketSelector.add(*client);
 
-						// Add the new client to the selector - this means we can update all clients
-						m_socketSelector.add(*client);
+					// Tell the client which player it is
+					sf::Packet p;
+					const uint8_t playerNum = static_cast<uint8_t>(m_connectedClients.size()) - static_cast<uint8_t>(1);
+					
+					p << static_cast<uint8_t>(playerNum);
 
-						// Tell the client which player it is
-						sf::Packet p;
-						const int  playerNum = m_connectedClients.size() - 1;
-						p << static_cast<uint8_t>(playerNum);
+					std::cout << "Telling " << dp.m_userName << " that they are player: " << playerNum << std::endl;
 
-						std::cout << "Telling " << dp.m_userName << " that they are player: " << playerNum << std::endl;
-
-						client->send(p);
-					}
-				}else
-				{
-					std::cout << "MAXIMUM AMOUNT OF CLIENTS CONNECTED" << std::endl;
-					delete client;
+					client->send(p);
 				}
 			} else
 			{
-				std::cout << "A client had an error connecting..." << std::endl;
+				std::cout << "MAXIMUM AMOUNT OF CLIENTS CONNECTED" << std::endl;
 				delete client;
 			}
 		} else
 		{
-			// https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1SocketSelector.php for multiple clients
+			std::cout << "A client had an error connecting..." << std::endl;
+			delete client;
+		}
+	}
+}
 
-			// Loop through each client and use our new, fancy, socket selector
-			for (int i = 0; i < m_connectedClients.size(); ++i)
+void Server::Update(unsigned short port)
+{
+	if (m_socketSelector.wait())
+	{
+		CheckForNewClients();
+
+		// Loop through each client and use our new, fancy, socket selector
+		for (unsigned i = 0; i < m_connectedClients.size(); ++i)
+		{
+			if (m_socketSelector.isReady(*m_connectedClients[i]))
 			{
-				if (m_socketSelector.isReady(*m_connectedClients[i]))
+				sf::Packet packet;
+				if (m_connectedClients[i]->receive(packet) == sf::Socket::Done)
 				{
-					sf::Packet packet;
-					if (m_connectedClients[i]->receive(packet) == sf::Socket::Done)
+					DataPacket dp;
+					packet >> dp;
+
+					std::cout << "Received a message from: " << dp.m_userName << std::endl;
+
+					if (dp.m_type == UPDATE_POSITION)
 					{
-						DataPacket dp;
-						packet >> dp;
-
-						std::cout << "Received a message from: " << dp.m_userName << std::endl;
-						
-						if (dp.m_type == UPDATE_POSITION)
-						{
-							const sf::Vector2f playerPos(dp.m_x, dp.m_y);
-							std::cout << dp.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
-
-							sf::Packet sendPacket;
-
-							sendPacket << dp;
-							// update the other connected clients
-							for (int j = 0; j < m_connectedClients.size(); ++j)
-							{
-								if (j != i)
-								{
-									m_connectedClients[j]->send(sendPacket);
-								}
-							}
-						}
+						SendMessage(dp, i);
 					}
 				}
 			}
@@ -136,16 +122,24 @@ void Server::Update(unsigned short port)
 	}
 }
 
-bool Server::SendMessage()
+bool Server::SendMessage(const DataPacket& dp, const unsigned senderIndex)
 {
-	//std::cout << "Sending a message to the connected clients..." << std::endl;
-	//
-	//// Send a message to the connected client
-	//const char out[] = "Hi, I'm the server";
-	//if (m_socket.send(out, sizeof(out)) != sf::Socket::Done)
-	//	return false;
+	const sf::Vector2f playerPos(dp.m_x, dp.m_y);
+	std::cout << dp.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
 
-	//std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
+	sf::Packet sendPacket;
+
+	sendPacket << dp;
+
+	// update the other connected clients
+	for (unsigned j = 0; j < m_connectedClients.size(); ++j)
+	{
+		if (j != senderIndex)
+		{
+			m_connectedClients[j]->send(sendPacket);
+		}
+	}
+	
 	return true;
 }
 

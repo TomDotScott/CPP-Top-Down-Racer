@@ -15,14 +15,14 @@ public:
 private:
 	sf::IpAddress m_server;
 	sf::TcpSocket m_socket;
-	
-	uint8_t m_playerNumber;
-	std::vector<sf::RectangleShape> m_players;
-	
-	float m_speed;
 	std::string m_userName;
 	float m_packetDelay;
 	float m_packetTimer;
+	uint8_t m_playerNumber;
+	
+	std::vector<sf::RectangleShape> m_players;
+	float m_speed;
+	sf::Font m_gameFont;
 	
 	bool Initialise(unsigned short port);
 	bool ReceiveMessage();

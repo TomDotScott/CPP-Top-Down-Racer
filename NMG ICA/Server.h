@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <SFML/Network.hpp>
 
+#include "../Shared Files/Data.h"
+
 class Server
 {
 public:
@@ -18,6 +20,7 @@ private:
 	Server();
 	~Server();
 	bool Initialise(unsigned short port);
-	bool SendMessage();
+	void CheckForNewClients();
+	bool SendMessage(const DataPacket& dp, unsigned senderIndex);
 	bool ReceiveMessage();
 };

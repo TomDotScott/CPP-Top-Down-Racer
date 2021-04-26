@@ -23,6 +23,11 @@ Client* Client::CreateClient(const std::string& username, const unsigned short p
 
 bool Client::Initialise(const unsigned short port)
 {
+	if (!m_gameFont.loadFromFile("images/gamefont.ttf"))
+	{
+		return false;
+	}
+	
 	m_server = sf::IpAddress::getLocalAddress();
 
 	// Connect to the server
@@ -62,7 +67,7 @@ bool Client::Initialise(const unsigned short port)
 
 	p >> m_playerNumber;
 
-	std::cout << "The server told me I am player number: " << m_playerNumber << std::endl;
+	std::cout << "The server told me I am player number: " << static_cast<int>(m_playerNumber) << std::endl;
 
 	return true;
 }
@@ -119,6 +124,7 @@ void Client::Render(sf::RenderWindow& window)
 {
 	for (const auto& shape : m_players)
 	{
+		
 		window.draw(shape);
 	}
 }
@@ -140,16 +146,7 @@ bool Client::ReceiveMessage()
 		m_players[dp.m_playerNum].setPosition(dp.m_x, dp.m_y);
 	}
 
-	//if (code == static_cast<uint8_t>(ePacketType::e_UpdatePosition))
-	//{
-	//	std::cout << "Updating player two's position" << std::endl;
-
-	//	// Update player 2's position based on the data received from the server
-	//	const sf::Vector2f p2Pos(x, y);
-
-	//	m_playerTwoShape.setPosition(p2Pos);
-	//}
-
+	
 	return true;
 }
 
@@ -172,11 +169,11 @@ bool Client::SendMessage()
 }
 
 Client::Client(std::string username) :
-	m_playerNumber(0),
-	m_speed(100.f),
 	m_userName(std::move(username)),
 	m_packetDelay(0.033f),
-	m_packetTimer(0.f)
+	m_packetTimer(0.f),
+	m_playerNumber(0),
+	m_speed(100.f)
 {
 	sf::RectangleShape shape;
 	shape.setFillColor(sf::Color::Red);

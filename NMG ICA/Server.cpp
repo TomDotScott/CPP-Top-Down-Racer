@@ -100,12 +100,12 @@ void Server::Update(unsigned short port)
 		CheckForNewClients();
 
 		// Loop through each client and use our new, fancy, socket selector
-		for (unsigned i = 0; i < m_connectedClients.size(); ++i)
+		for(auto& client : m_connectedClients)
 		{
-			if (m_socketSelector.isReady(*m_connectedClients[i]))
+			if(m_socketSelector.isReady(*client))
 			{
 				sf::Packet packet;
-				if (m_connectedClients[i]->receive(packet) == sf::Socket::Done)
+				if(client->receive(packet) == sf::Socket::Done)
 				{
 					DataPacket dp;
 					packet >> dp;
@@ -114,7 +114,7 @@ void Server::Update(unsigned short port)
 
 					if (dp.m_type == UPDATE_POSITION)
 					{
-						SendMessage(dp, i);
+						SendMessage(dp, client);
 					}
 				}
 			}
@@ -122,7 +122,7 @@ void Server::Update(unsigned short port)
 	}
 }
 
-bool Server::SendMessage(const DataPacket& dp, const unsigned senderIndex)
+bool Server::SendMessage(const DataPacket& dp, sf::TcpSocket* sender)
 {
 	const sf::Vector2f playerPos(dp.m_x, dp.m_y);
 	std::cout << dp.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
@@ -132,11 +132,11 @@ bool Server::SendMessage(const DataPacket& dp, const unsigned senderIndex)
 	sendPacket << dp;
 
 	// update the other connected clients
-	for (unsigned j = 0; j < m_connectedClients.size(); ++j)
+	for (auto& client : m_connectedClients)
 	{
-		if (j != senderIndex)
+		if (client != sender)
 		{
-			m_connectedClients[j]->send(sendPacket);
+			client->send(sendPacket);
 		}
 	}
 	

@@ -6,18 +6,17 @@
 
 #include "../Shared Files/Data.h"
 
-Client* Client::CreateClient(const std::string& username, const unsigned short port)
+std::unique_ptr<Client> Client::CreateClient(const std::string& username, const unsigned short port)
 {
-	auto* c = new Client(username);
+	std::unique_ptr<Client> newClient(new Client(username));
 
-	if (c->Initialise(port))
+	if (newClient->Initialise(port))
 	{
 		std::cout << "Player " << username << " created successfully" << std::endl;
-		return c;
+		return newClient;
 	}
 
 	std::cout << "ERROR WHILST CREATING THE PLAYER " << username << std::endl;
-	delete c;
 	return nullptr;
 }
 
@@ -39,7 +38,7 @@ bool Client::Initialise(const unsigned short port)
 
 	sf::Packet packet;
 
-	const DataPacket dp(FIRST_CONNECTION, m_userName);
+	const DataPacket dp(eDataPacketType::e_FirstConnection, m_userName);
 
 	packet << dp;
 
@@ -141,7 +140,7 @@ bool Client::ReceiveMessage()
 
 	std::cout << "Received a packet from " << dp.m_userName << std::endl;
 
-	if (dp.m_type == UPDATE_POSITION)
+	if (dp.m_type == eDataPacketType::e_UpdatePosition)
 	{
 		m_players[dp.m_playerNum].setPosition(dp.m_x, dp.m_y);
 	}
@@ -156,7 +155,7 @@ bool Client::SendMessage()
 	const sf::Vector2f& position = m_players[m_playerNumber].getPosition();
 
 	sf::Packet packet;
-	const DataPacket dp(UPDATE_POSITION, m_userName, m_playerNumber, position.x, position.y);
+	const DataPacket dp(eDataPacketType::e_UpdatePosition, m_userName, m_playerNumber, position.x, position.y);
 
 	packet << dp;
 
@@ -168,8 +167,8 @@ bool Client::SendMessage()
 	return true;
 }
 
-Client::Client(std::string username) :
-	m_userName(std::move(username)),
+Client::Client(const std::string& username) :
+	m_userName(username),
 	m_packetDelay(0.033f),
 	m_packetTimer(0.f),
 	m_playerNumber(0),

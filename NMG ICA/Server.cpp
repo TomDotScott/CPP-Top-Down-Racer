@@ -1,18 +1,16 @@
 ﻿#include "Server.h"
-#include "../Shared Files/Data.h"
 #include <iostream>
+#include "../Shared Files/Data.h"
 
-Server* Server::CreateServer(const unsigned short port)
+std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
 {
-	auto* s = new Server();
-	if (s->Initialise(port))
+	std::unique_ptr<Server> newServer(new Server());
+	if (newServer->Initialise(port))
 	{
-		return s;
-	} else
-	{
-		delete s;
-		return nullptr;
+		return newServer;
 	}
+
+	return nullptr;
 }
 
 Server::Server() :
@@ -62,7 +60,7 @@ void Server::CheckForNewClients()
 
 			if (m_connectedClients.size() < m_maxClients)
 			{
-				if (dp.m_type == FIRST_CONNECTION)
+				if (dp.m_type == eDataPacketType::e_FirstConnection)
 				{
 					std::cout << dp.m_userName << " has connected to the server" << std::endl;
 					m_connectedClients.push_back(client);
@@ -72,6 +70,7 @@ void Server::CheckForNewClients()
 
 					// Tell the client which player it is
 					sf::Packet p;
+					p << eDataPacketType::e_None;
 					const uint8_t playerNum = static_cast<uint8_t>(m_connectedClients.size()) - static_cast<uint8_t>(1);
 					
 					p << static_cast<uint8_t>(playerNum);
@@ -102,7 +101,7 @@ void Server::Update(unsigned short port)
 		// Loop through each client and use our new, fancy, socket selector
 		for(auto& client : m_connectedClients)
 		{
-			if(m_socketSelector.isReady(*client))
+			if(client && m_socketSelector.isReady(*client))
 			{
 				sf::Packet packet;
 				if(client->receive(packet) == sf::Socket::Done)
@@ -112,7 +111,7 @@ void Server::Update(unsigned short port)
 
 					std::cout << "Received a message from: " << dp.m_userName << std::endl;
 
-					if (dp.m_type == UPDATE_POSITION)
+					if (dp.m_type == eDataPacketType::e_UpdatePosition)
 					{
 						SendMessage(dp, client);
 					}
@@ -122,11 +121,15 @@ void Server::Update(unsigned short port)
 	}
 }
 
+// TODO: Sender should be a reference since Update will assert that the client in question can never be null.
+// If I know something will exist, don't send it again as a pointer, it makes it unclear
 bool Server::SendMessage(const DataPacket& dp, sf::TcpSocket* sender)
 {
 	const sf::Vector2f playerPos(dp.m_x, dp.m_y);
 	std::cout << dp.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
 
+	//A reference stops this from happening...
+	// sender = nullptr;
 	sf::Packet sendPacket;
 
 	sendPacket << dp;

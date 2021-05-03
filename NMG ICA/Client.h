@@ -6,7 +6,7 @@
 class Client
 {
 public:
-	static Client* CreateClient(const std::string& username, unsigned short port);
+	static std::unique_ptr<Client> CreateClient(const std::string& username, unsigned short port);
 
 	void Update(float deltaTime, bool windowInFocus);
 	
@@ -27,5 +27,6 @@ private:
 	bool Initialise(unsigned short port);
 	bool ReceiveMessage();
 	bool SendMessage();
-	Client(std::string username);
+	
+	Client(const std::string& username);
 };

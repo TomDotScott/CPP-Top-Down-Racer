@@ -43,9 +43,9 @@ int main()
 	std::string username;
 	std::cin >> username;
 
-	Client* c = Client::CreateClient(username, 25565);
+	auto client = Client::CreateClient(username, 25565);
 
-	if (c)
+	if (client)
 	{
 
 		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
@@ -78,14 +78,12 @@ int main()
 			sf::Time time = clock.restart();
 			const float dt = time.asSeconds();
 
-			c->Update(dt, inFocus);
-			c->Render(window);
+			client->Update(dt, inFocus);
+			client->Render(window);
 
 			window.display();
 		}
 	}
-
-	delete c;
 
 	//sf::RenderWindow window(sf::VideoMode(800, 600), "Server/Client Test");
 	//

@@ -3,7 +3,7 @@
 
 int main()
 {
-	Server* s = Server::CreateServer(25565);
+	auto s = Server::CreateServer(25565);
 
 	while(true)
 	{

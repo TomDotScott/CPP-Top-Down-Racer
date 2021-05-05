@@ -135,6 +135,7 @@ bool Client::ReceiveMessage()
 	case eDataPacketType::e_MaxPlayers: break;
 	case eDataPacketType::e_UpdatePosition:
 		m_players[inData.m_userName].SetPosition({ inData.m_x, inData.m_y });
+		m_players[inData.m_userName].SetAngle(inData.m_angle);
 		break;
 	default:;
 	}

@@ -11,7 +11,7 @@ class Client
 public:
 	static std::unique_ptr<Client> CreateClient(const std::string& username, unsigned short port);
 
-	void Update(float deltaTime, bool windowInFocus);
+	void Update(float deltaTime);
 
 	void Render(sf::RenderWindow& window);
 

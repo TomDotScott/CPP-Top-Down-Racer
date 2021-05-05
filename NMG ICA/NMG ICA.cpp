@@ -53,8 +53,6 @@ int main()
 
 		sf::Clock clock;
 
-		bool inFocus = true;
-
 		// run the program as long as the window is open
 		while (window.isOpen())
 		{
@@ -66,12 +64,6 @@ int main()
 				// "close requested" event: we close the window
 				if (e.type == sf::Event::Closed)
 					window.close();
-
-				if (e.type == sf::Event::GainedFocus)
-					inFocus = true;
-
-				if (e.type == sf::Event::LostFocus)
-					inFocus = false;
 			}
 
 			window.clear();
@@ -84,7 +76,7 @@ int main()
 				client->Input(deltaTime);
 			}
 			
-			client->Update(deltaTime, inFocus);
+			client->Update(deltaTime);
 			client->Render(window);
 
 			window.display();

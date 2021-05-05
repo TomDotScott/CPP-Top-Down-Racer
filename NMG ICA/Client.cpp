@@ -78,7 +78,7 @@ bool Client::Initialise(const unsigned short port)
 	return true;
 }
 
-void Client::Update(const float deltaTime, const bool windowInFocus)
+void Client::Update(const float deltaTime)
 {
 	m_players[m_userName].Update(deltaTime);
 
@@ -87,12 +87,7 @@ void Client::Update(const float deltaTime, const bool windowInFocus)
 
 	if (m_packetTimer >= m_packetDelay)
 	{
-		// If the position was the same as the last frame, don't send the packets
-		if (m_playerMoved)
-		{
-			SendMessage();
-		}
-
+		SendMessage();
 		m_packetTimer = 0.f;
 	}
 
@@ -165,7 +160,7 @@ bool Client::SendMessage()
 
 Client::Client(const std::string& username) :
 	m_userName(username),
-	m_packetDelay(0.033f),
+	m_packetDelay(0.05f),
 	m_packetTimer(0.f),
 	m_playerMoved(false)
 {

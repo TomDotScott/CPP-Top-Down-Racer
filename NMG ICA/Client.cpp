@@ -22,10 +22,12 @@ std::unique_ptr<Client> Client::CreateClient(const std::string& username, const 
 
 bool Client::Initialise(const unsigned short port)
 {
-	if (!m_gameFont.loadFromFile("images/gamefont.ttf"))
+	if (!m_texture.loadFromFile("images/car.png"))
 	{
 		return false;
 	}
+
+	m_sprite.setTexture(m_texture);
 	
 	m_server = sf::IpAddress::getLocalAddress();
 
@@ -75,7 +77,7 @@ void Client::Update(const float deltaTime, const bool windowInFocus)
 {
 	bool playerMoved = false;
 
-	if (windowInFocus)
+	/*if (windowInFocus)
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
 		{
@@ -100,7 +102,7 @@ void Client::Update(const float deltaTime, const bool windowInFocus)
 			m_players[m_playerNumber].move({ m_speed * deltaTime, 0.f });
 			playerMoved = true;
 		}
-	}
+	}*/
 
 	// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
 	m_packetTimer += deltaTime;
@@ -171,34 +173,8 @@ Client::Client(const std::string& username) :
 	m_userName(username),
 	m_packetDelay(0.033f),
 	m_packetTimer(0.f),
-	m_playerNumber(0),
-	m_speed(100.f)
+	m_playerNumber(0)
 {
-	sf::RectangleShape shape;
-	shape.setFillColor(sf::Color::Red);
-	m_players.push_back(shape);
-
-	shape.setFillColor(sf::Color::Blue);
-	m_players.push_back(shape);
-
-	shape.setFillColor(sf::Color::Yellow);
-	m_players.push_back(shape);
-
-	shape.setFillColor(sf::Color::Magenta);
-	m_players.push_back(shape);
-
-	shape.setFillColor(sf::Color::Cyan);
-	m_players.push_back(shape);
-
-	shape.setFillColor(sf::Color::White);
-	m_players.push_back(shape);
-
-	shape.setFillColor(sf::Color::Green);
-	m_players.push_back(shape);
-
-	shape.setFillColor({ 255, 165, 0 });
-	m_players.push_back(shape);
-
 	for (int i = 0; i < 8; ++i)
 	{
 		m_players[i].setSize({ 50.f, 50.f });

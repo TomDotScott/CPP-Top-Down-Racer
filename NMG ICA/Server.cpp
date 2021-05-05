@@ -73,7 +73,7 @@ void Server::CheckForNewClients()
 					p << eDataPacketType::e_None;
 					const uint8_t playerNum = static_cast<uint8_t>(m_connectedClients.size()) - static_cast<uint8_t>(1);
 					
-					p << static_cast<uint8_t>(playerNum);
+					p << playerNum;
 
 					std::cout << "Telling " << dp.m_userName << " that they are player: " << playerNum << std::endl;
 

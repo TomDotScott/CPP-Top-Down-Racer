@@ -53,6 +53,7 @@ struct DataPacket
 	uint8_t m_playerNum;
 	float m_x;
 	float m_y;
+	float m_angle;
 };
 
 inline sf::Packet operator<<(sf::Packet& packet, const DataPacket& dp)

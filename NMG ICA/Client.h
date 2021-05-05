@@ -9,7 +9,7 @@ public:
 	static std::unique_ptr<Client> CreateClient(const std::string& username, unsigned short port);
 
 	void Update(float deltaTime, bool windowInFocus);
-	
+
 	void Render(sf::RenderWindow& window);
 
 private:
@@ -19,14 +19,14 @@ private:
 	float m_packetDelay;
 	float m_packetTimer;
 	uint8_t m_playerNumber;
-	
+
 	std::vector<sf::RectangleShape> m_players;
-	float m_speed;
-	sf::Font m_gameFont;
-	
+	sf::Texture m_texture;
+	sf::Sprite m_sprite;
+
 	bool Initialise(unsigned short port);
 	bool ReceiveMessage();
 	bool SendMessage();
-	
+
 	Client(const std::string& username);
 };

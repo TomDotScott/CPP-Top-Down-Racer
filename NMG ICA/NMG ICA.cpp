@@ -2,6 +2,7 @@
 #include <iostream>
 #include <SFML/Network.hpp>
 #include "Client.h"
+#include "Player.h"
 
 //const int num = 8; //checkpoints
 //// TODO: use checkpoint to make sure we are on the track.
@@ -38,7 +39,7 @@
 
 int main()
 {
-	std::cout << "Enter a username: ";
+	/*std::cout << "Enter a username: ";
 
 	std::string username;
 	std::cin >> username;
@@ -46,9 +47,14 @@ int main()
 	auto client = Client::CreateClient(username, 25565);
 
 	if (client)
-	{
+	{*/
 
-		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
+	sf::Texture texture;
+	texture.loadFromFile("images/car.png");
+	texture.setSmooth(true);
+	
+	Player p(texture);
+		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " /*+ username*/);
 
 		sf::Clock clock;
 
@@ -78,34 +84,13 @@ int main()
 			sf::Time time = clock.restart();
 			const float dt = time.asSeconds();
 
-			client->Update(dt, inFocus);
-			client->Render(window);
+			p.Update(dt);
+			p.Render(window);
+			/*client->Update(dt, inFocus);
+			client->Render(window);*/
 
 			window.display();
 		}
-	}
-
-	//sf::RenderWindow window(sf::VideoMode(800, 600), "Server/Client Test");
-	//
-	//// run the program as long as the window is open
-	//while (window.isOpen())
-	//{
-	//	// check all the window's events that were triggered since the last iteration of the loop
-	//	sf::Event ev;
-	//	while (window.pollEvent(ev))
-	//	{
-	//		// "close requested" event: we close the window
-	//		if (ev.type == sf::Event::Closed)
-	//			window.close();
-
-	//	}
-
-	//	runTcpServer()
-	//	
-
-	//	window.clear();
-	//	
-	//	window.display();
 	//}
 
 	//RenderWindow app(VideoMode(640, 480), "Car Racing Game!");

@@ -28,7 +28,7 @@ bool Client::Initialise(const unsigned short port)
 	}
 
 	m_sprite.setTexture(m_texture);
-	
+
 	m_server = sf::IpAddress::getLocalAddress();
 
 	// Connect to the server
@@ -38,26 +38,26 @@ bool Client::Initialise(const unsigned short port)
 		return false;
 	}
 
-	sf::Packet packet;
+	sf::Packet outPacket;
 
-	const DataPacket dp(eDataPacketType::e_FirstConnection, m_userName);
+	const DataPacket firstConnectionDataPacket(eDataPacketType::e_FirstConnection, m_userName);
 
-	packet << dp;
+	outPacket << firstConnectionDataPacket;
 
-	m_socket.send(packet);
+	m_socket.send(outPacket);
 	m_socket.setBlocking(false);
 
 	std::cout << m_userName << " connected to server " << m_server << std::endl;
 
-	sf::Packet p;
+	sf::Packet inPacket;
 
 	sf::Clock clock{};
 	float elapsedTime = 0.f;
-	while (m_socket.receive(p) != sf::Socket::Done)
+	while (m_socket.receive(inPacket) != sf::Socket::Done)
 	{
 		elapsedTime += clock.restart().asSeconds();
 
-		std::cout << " waiting for the player number... " << elapsedTime << std::endl;
+		std::cout << " waiting for confirmation " << elapsedTime << std::endl;
 
 		if (elapsedTime >= 10.f)
 		{
@@ -66,43 +66,21 @@ bool Client::Initialise(const unsigned short port)
 		}
 	}
 
-	p >> m_playerNumber;
 
-	std::cout << "The server told me I am player number: " << static_cast<int>(m_playerNumber) << std::endl;
+	DataPacket inDataPacket;
+	inPacket >> inDataPacket;
+
+	if (inDataPacket.m_type == eDataPacketType::e_UserNameConfirmation)
+	{
+		std::cout << "Username confirmed, client connected" << std::endl;
+	}
 
 	return true;
 }
 
 void Client::Update(const float deltaTime, const bool windowInFocus)
 {
-	bool playerMoved = false;
-
-	/*if (windowInFocus)
-	{
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-		{
-			m_players[m_playerNumber].move({ 0.f, -m_speed * deltaTime });
-			playerMoved = true;
-		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-		{
-			m_players[m_playerNumber].move({ 0.f, m_speed * deltaTime });
-			playerMoved = true;
-		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-		{
-			m_players[m_playerNumber].move({ -m_speed * deltaTime, 0.f });
-			playerMoved = true;
-		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-		{
-			m_players[m_playerNumber].move({ m_speed * deltaTime, 0.f });
-			playerMoved = true;
-		}
-	}*/
+	m_players[m_userName].Update(deltaTime);
 
 	// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
 	m_packetTimer += deltaTime;
@@ -110,7 +88,7 @@ void Client::Update(const float deltaTime, const bool windowInFocus)
 	if (m_packetTimer >= m_packetDelay)
 	{
 		// If the position was the same as the last frame, don't send the packets
-		if (playerMoved)
+		if (m_playerMoved)
 		{
 			SendMessage();
 		}
@@ -119,49 +97,64 @@ void Client::Update(const float deltaTime, const bool windowInFocus)
 	}
 
 	ReceiveMessage();
+	m_playerMoved = false;
 }
 
 void Client::Render(sf::RenderWindow& window)
 {
-	for (const auto& shape : m_players)
+	for (auto& player : m_players)
 	{
-		
-		window.draw(shape);
+		player.second.Render(window);
 	}
 }
 
 bool Client::ReceiveMessage()
 {
 	sf::Packet inPacket;
+
 	if (m_socket.receive(inPacket) != sf::Socket::Done)
 		return false;
 
-	DataPacket dp;
+	DataPacket inData;
 
-	inPacket >> dp;
+	inPacket >> inData;
 
-	std::cout << "Received a packet from " << dp.m_userName << std::endl;
+	std::cout << "Received a packet from " << inData.m_userName << std::endl;
 
-	if (dp.m_type == eDataPacketType::e_UpdatePosition)
+	switch (inData.m_type)
 	{
-		m_players[dp.m_playerNum].setPosition(dp.m_x, dp.m_y);
+	case eDataPacketType::e_None: break;
+	case eDataPacketType::e_FirstConnection: break;
+	case eDataPacketType::e_UserNameConfirmation: break;
+	case eDataPacketType::e_UserNameRejection: break;
+	case eDataPacketType::e_NewClient:
+		std::cout << "The server told me a new client connected with the username" << inData.m_userName << std::endl;
+		m_players.insert(std::make_pair(inData.m_userName, Player()));
+		std::cout << m_players.size() << std::endl;
+		break;
+	case eDataPacketType::e_MaxPlayers: break;
+	case eDataPacketType::e_UpdatePosition:
+		m_players[inData.m_userName].SetPosition({ inData.m_x, inData.m_y });
+		break;
+	default:;
 	}
 
-	
+
 	return true;
 }
 
 bool Client::SendMessage()
 {
 	// Push some data to the packet
-	const sf::Vector2f& position = m_players[m_playerNumber].getPosition();
+	const sf::Vector2f& playerPosition = m_players[m_userName].GetPosition();
+	const float playerAngle = m_players[m_userName].GetAngle();
 
-	sf::Packet packet;
-	const DataPacket dp(eDataPacketType::e_UpdatePosition, m_userName, m_playerNumber, position.x, position.y);
+	sf::Packet outPacket;
+	const DataPacket outDataPacket(eDataPacketType::e_UpdatePosition, m_userName, playerPosition.x, playerPosition.y, playerAngle);
 
-	packet << dp;
+	outPacket << outDataPacket;
 
-	if (m_socket.send(packet) != sf::Socket::Done)
+	if (m_socket.send(outPacket) != sf::Socket::Done)
 	{
 		return false;
 	}
@@ -173,11 +166,32 @@ Client::Client(const std::string& username) :
 	m_userName(username),
 	m_packetDelay(0.033f),
 	m_packetTimer(0.f),
-	m_playerNumber(0)
+	m_playerMoved(false)
 {
-	for (int i = 0; i < 8; ++i)
+
+}
+
+void Client::Input(const float deltaTime)
+{
+	m_playerMoved = false;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
-		m_players[i].setSize({ 50.f, 50.f });
-		m_players[i].setPosition(i * 50.f, 300.f);
+		m_players[m_userName].ChangeAngle(-3.14f * deltaTime);
+		m_playerMoved = true;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+	{
+		m_players[m_userName].ChangeAngle(3.14f * deltaTime);
+		m_playerMoved = true;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+	{
+		m_players[m_userName].ChangeVelocity(0, -globals::k_carSpeed * deltaTime);
+		m_playerMoved = true;
+	} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+	{
+		m_players[m_userName].ChangeVelocity(0, globals::k_carSpeed * deltaTime);
+		m_playerMoved = true;
 	}
 }

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <list>
+#include <unordered_map>
 #include <SFML/Network.hpp>
 
 #include "../Shared Files/Data.h"
@@ -24,14 +25,13 @@ private:
 	sf::TcpListener m_listener;
 	sf::SocketSelector m_socketSelector;
 	
-	// Swapped from vector to list because we add and remove clients on the fly
 	// TODO: Swap to vector of unique_ptr - ups are 'Owning Handles'
-	std::list<sf::TcpSocket*> m_connectedClients;
+	std::unordered_map<std::string, sf::TcpSocket*> m_connectedClients;
 	unsigned m_maxClients;
 	
 	Server();
 	bool Initialise(unsigned short port);
 	void CheckForNewClients();
-	bool SendMessage(const DataPacket& dp, sf::TcpSocket* sender);
+	bool SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender);
 	bool ReceiveMessage();
 };

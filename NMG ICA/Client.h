@@ -1,7 +1,10 @@
 ﻿#pragma once
+#include <unordered_map>
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
 #include <utility>
+
+#include "Player.h"
 
 class Client
 {
@@ -12,15 +15,17 @@ public:
 
 	void Render(sf::RenderWindow& window);
 
+	void Input(float deltaTime);
+
 private:
 	sf::IpAddress m_server;
 	sf::TcpSocket m_socket;
 	std::string m_userName;
 	float m_packetDelay;
 	float m_packetTimer;
-	uint8_t m_playerNumber;
+	bool m_playerMoved;
 
-	std::vector<sf::RectangleShape> m_players;
+	std::unordered_map<std::string, Player> m_players;
 	sf::Texture m_texture;
 	sf::Sprite m_sprite;
 

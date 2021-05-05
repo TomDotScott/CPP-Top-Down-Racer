@@ -39,7 +39,7 @@
 
 int main()
 {
-	/*std::cout << "Enter a username: ";
+	std::cout << "Enter a username: ";
 
 	std::string username;
 	std::cin >> username;
@@ -47,14 +47,9 @@ int main()
 	auto client = Client::CreateClient(username, 25565);
 
 	if (client)
-	{*/
+	{
 
-	sf::Texture texture;
-	texture.loadFromFile("images/car.png");
-	texture.setSmooth(true);
-	
-	Player p(texture);
-		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " /*+ username*/);
+		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
 
 		sf::Clock clock;
 
@@ -82,16 +77,19 @@ int main()
 			window.clear();
 
 			sf::Time time = clock.restart();
-			const float dt = time.asSeconds();
+			const float deltaTime = time.asSeconds();
 
-			p.Update(dt);
-			p.Render(window);
-			/*client->Update(dt, inFocus);
-			client->Render(window);*/
+			if (window.hasFocus())
+			{
+				client->Input(deltaTime);
+			}
+			
+			client->Update(deltaTime, inFocus);
+			client->Render(window);
 
 			window.display();
 		}
-	//}
+	}
 
 	//RenderWindow app(VideoMode(640, 480), "Car Racing Game!");
 	//app.setFramerateLimit(60);

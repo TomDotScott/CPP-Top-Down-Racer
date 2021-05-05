@@ -23,7 +23,7 @@ Server::~Server()
 {
 	for (auto& connectedClient : m_connectedClients)
 	{
-		delete connectedClient;
+		delete connectedClient.second;
 	}
 }
 
@@ -50,38 +50,51 @@ void Server::CheckForNewClients()
 		auto* client = new sf::TcpSocket();
 		if (m_listener.accept(*client) == sf::Socket::Done)
 		{
-			sf::Packet packet;
-			DataPacket dp;
+			sf::Packet inPacket;
+			DataPacket inData;
 
-			if (client->receive(packet) == sf::Socket::Done)
+			if (client->receive(inPacket) == sf::Socket::Done)
 			{
-				packet >> dp;
+				inPacket >> inData;
 			}
 
 			if (m_connectedClients.size() < m_maxClients)
 			{
-				if (dp.m_type == eDataPacketType::e_FirstConnection)
+				if (inData.m_type == eDataPacketType::e_FirstConnection)
 				{
-					std::cout << dp.m_userName << " has connected to the server" << std::endl;
-					m_connectedClients.push_back(client);
-
 					// Add the new client to the selector - this means we can update all clients
 					m_socketSelector.add(*client);
-
-					// Tell the client which player it is
-					sf::Packet p;
-					p << eDataPacketType::e_None;
-					const uint8_t playerNum = static_cast<uint8_t>(m_connectedClients.size()) - static_cast<uint8_t>(1);
 					
-					p << playerNum;
+					std::cout << inData.m_userName << " has connected to the server" << std::endl;
+					m_connectedClients.insert(std::make_pair(inData.m_userName, client));
 
-					std::cout << "Telling " << dp.m_userName << " that they are player: " << playerNum << std::endl;
+					// Tell the client that they are successful
+					sf::Packet outPacket;
 
-					client->send(p);
+					const DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER");
+
+					outPacket << outData;
+					
+					client->send(outPacket);
+
+					outPacket.clear();
+
+					// Tell the other clients that a new client has connected
+					const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, "SERVER");
+					outPacket << updateClientDataPacket;
+
+					SendMessage(updateClientDataPacket, *client);
 				}
 			} else
 			{
 				std::cout << "MAXIMUM AMOUNT OF CLIENTS CONNECTED" << std::endl;
+				
+				sf::Packet maxClientMessagePkt;
+				const DataPacket maximumClientMessage(eDataPacketType::e_MaxPlayers, "SERVER");
+				maxClientMessagePkt << maximumClientMessage;
+				
+				client->send(maxClientMessagePkt);
+				
 				delete client;
 			}
 		} else
@@ -101,19 +114,19 @@ void Server::Update(unsigned short port)
 		// Loop through each client and use our new, fancy, socket selector
 		for(auto& client : m_connectedClients)
 		{
-			if(client && m_socketSelector.isReady(*client))
+			if(client.second && m_socketSelector.isReady(*client.second))
 			{
-				sf::Packet packet;
-				if(client->receive(packet) == sf::Socket::Done)
+				sf::Packet inPacket;
+				if(client.second->receive(inPacket) == sf::Socket::Done)
 				{
-					DataPacket dp;
-					packet >> dp;
+					DataPacket inData;
+					inPacket >> inData;
 
-					std::cout << "Received a message from: " << dp.m_userName << std::endl;
+					std::cout << "Received a message from: " << inData.m_userName << std::endl;
 
-					if (dp.m_type == eDataPacketType::e_UpdatePosition)
+					if (inData.m_type == eDataPacketType::e_UpdatePosition)
 					{
-						SendMessage(dp, client);
+						SendMessage(inData, *client.second);
 					}
 				}
 			}
@@ -121,25 +134,27 @@ void Server::Update(unsigned short port)
 	}
 }
 
-// TODO: Sender should be a reference since Update will assert that the client in question can never be null.
-// If I know something will exist, don't send it again as a pointer, it makes it unclear
-bool Server::SendMessage(const DataPacket& dp, sf::TcpSocket* sender)
+bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 {
-	const sf::Vector2f playerPos(dp.m_x, dp.m_y);
-	std::cout << dp.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
+	const sf::Vector2f playerPos(dataToSend.m_x, dataToSend.m_y);
+	std::cout << dataToSend.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
 
 	//A reference stops this from happening...
 	// sender = nullptr;
 	sf::Packet sendPacket;
 
-	sendPacket << dp;
+	sendPacket << dataToSend;
 
 	// update the other connected clients
 	for (auto& client : m_connectedClients)
 	{
-		if (client != sender)
+		// Make sure not to send the client their own data!
+		if (client.first != dataToSend.m_userName)
 		{
-			client->send(sendPacket);
+			if (dataToSend.m_userName != "SERVER")
+			{
+				client.second->send(sendPacket);
+			}
 		}
 	}
 	

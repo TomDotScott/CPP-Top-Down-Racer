@@ -2,7 +2,9 @@
 #include <list>
 #include <unordered_map>
 #include <SFML/Network.hpp>
+#include <SFML/Graphics/Color.hpp>
 
+#include "Globals.h"
 #include "../Shared Files/Data.h"
 
 // TODO: Use UDP for connecting, TCP for everything else
@@ -28,6 +30,13 @@ private:
 	// TODO: Swap to vector of unique_ptr - ups are 'Owning Handles'
 	std::unordered_map<std::string, sf::TcpSocket*> m_connectedClients;
 	unsigned m_maxClients;
+
+	const std::array<sf::Color, globals::k_playerAmount> m_carColours{
+		sf::Color(255, 0, 0),
+		sf::Color(0, 0, 255),
+		sf::Color(0, 255, 0),
+		sf::Color(255, 255, 0)
+	};
 	
 	Server();
 	bool Initialise(unsigned short port);

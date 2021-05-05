@@ -27,9 +27,11 @@ private:
 
 	std::unordered_map<std::string, Player> m_players;
 	sf::Texture m_texture;
-	sf::Sprite m_sprite;
 
 	bool Initialise(unsigned short port);
+
+	bool AddPlayer(const std::string& username);
+	
 	bool ReceiveMessage();
 	bool SendMessage();
 

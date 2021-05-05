@@ -27,8 +27,6 @@ bool Client::Initialise(const unsigned short port)
 		return false;
 	}
 
-	m_sprite.setTexture(m_texture);
-
 	m_server = sf::IpAddress::getLocalAddress();
 
 	// Connect to the server
@@ -66,7 +64,6 @@ bool Client::Initialise(const unsigned short port)
 		}
 	}
 
-
 	DataPacket inDataPacket;
 	inPacket >> inDataPacket;
 
@@ -75,8 +72,21 @@ bool Client::Initialise(const unsigned short port)
 		std::cout << "Username confirmed, client connected" << std::endl;
 	}
 
+	std::cout << "The server told me I am: " << static_cast<int>(inDataPacket.m_red) << " " << static_cast<int>(inDataPacket.m_green) << " " << static_cast<int>(inDataPacket.m_blue) << std::endl;
+
+	AddPlayer(m_userName);
+	
+	m_players[m_userName].SetColour(
+		{
+			static_cast<sf::Uint8>(inDataPacket.m_red),
+			static_cast<sf::Uint8>(inDataPacket.m_green),
+			static_cast<sf::Uint8>(inDataPacket.m_blue)
+		}
+	);
+
 	return true;
 }
+
 
 void Client::Update(const float deltaTime)
 {
@@ -103,6 +113,19 @@ void Client::Render(sf::RenderWindow& window)
 	}
 }
 
+bool Client::AddPlayer(const std::string& username)
+{
+	if(!globals::is_value_in_map(m_players, username))
+	{
+		std::cout << "Adding: " << username << " to the map..." << std::endl;
+		m_players.insert(std::make_pair(username, Player(m_texture)));
+
+		std::cout << "The new map size is: " << m_players.size() << std::endl;
+		return true;
+	}
+	return false;
+}
+
 bool Client::ReceiveMessage()
 {
 	sf::Packet inPacket;
@@ -114,7 +137,23 @@ bool Client::ReceiveMessage()
 
 	inPacket >> inData;
 
-	std::cout << "Received a packet from " << inData.m_userName << std::endl;
+	// std::cout << "Received a packet from " << inData.m_userName << std::endl;
+
+	// See if the data is from a new client...
+	if (AddPlayer(inData.m_userName))
+	{
+		std::cout << "A new client connected with the username: " << inData.m_userName << std::endl;
+
+		m_players[inData.m_userName].SetColour(
+			{
+				static_cast<sf::Uint8>(inData.m_red),
+				static_cast<sf::Uint8>(inData.m_green),
+				static_cast<sf::Uint8>(inData.m_blue)
+			}
+		);
+
+		std::cout << "The server told me the new clients are: " << static_cast<int>(inData.m_red) << " " << static_cast<int>(inData.m_green) << " " << static_cast<int>(inData.m_blue) << std::endl;
+	}
 
 	switch (inData.m_type)
 	{
@@ -122,12 +161,9 @@ bool Client::ReceiveMessage()
 	case eDataPacketType::e_FirstConnection: break;
 	case eDataPacketType::e_UserNameConfirmation: break;
 	case eDataPacketType::e_UserNameRejection: break;
-	case eDataPacketType::e_NewClient:
-		std::cout << "The server told me a new client connected with the username" << inData.m_userName << std::endl;
-		m_players.insert(std::make_pair(inData.m_userName, Player()));
-		std::cout << m_players.size() << std::endl;
+	case eDataPacketType::e_MaxPlayers:
+		std::cout << "The server told me that there are the max amount of players in the game already..." << std::endl;
 		break;
-	case eDataPacketType::e_MaxPlayers: break;
 	case eDataPacketType::e_UpdatePosition:
 		m_players[inData.m_userName].SetPosition({ inData.m_x, inData.m_y });
 		m_players[inData.m_userName].SetAngle(inData.m_angle);
@@ -142,11 +178,12 @@ bool Client::ReceiveMessage()
 bool Client::SendMessage()
 {
 	// Push some data to the packet
-	const sf::Vector2f& playerPosition = m_players[m_userName].GetPosition();
-	const float playerAngle = m_players[m_userName].GetAngle();
+	const auto& playerPosition = m_players[m_userName].GetPosition();
+	const auto playerAngle = m_players[m_userName].GetAngle();
+	const auto playerColour = m_players[m_userName].GetColour();
 
 	sf::Packet outPacket;
-	const DataPacket outDataPacket(eDataPacketType::e_UpdatePosition, m_userName, playerPosition.x, playerPosition.y, playerAngle);
+	const DataPacket outDataPacket(eDataPacketType::e_UpdatePosition, m_userName, playerColour, playerPosition.x, playerPosition.y, playerAngle);
 
 	outPacket << outDataPacket;
 

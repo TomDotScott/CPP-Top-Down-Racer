@@ -7,13 +7,17 @@
 class Player
 {
 public:
-	Player();
+	Player() = default; // Default constructor needed to compile for the unordered_map<>'s
+	Player(const sf::Texture& textureData);
 	
 	void Update(float deltaTime);
 	void Render(sf::RenderWindow& window);
 
 	sf::Vector2f GetPosition() const;
 	void SetPosition(const sf::Vector2f& position);
+
+	sf::Color GetColour() const;
+	void SetColour(const sf::Color& colour);
 	
 	void ChangeVelocity(const float dx, const float dy);
 
@@ -23,7 +27,6 @@ public:
 
 private:
 	sf::Sprite m_sprite;
-	sf::Texture m_texture;
 	
 	sf::Vector2f m_position;
 	sf::Vector2f m_velocity;

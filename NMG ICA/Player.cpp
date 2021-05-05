@@ -1,18 +1,12 @@
 ﻿#include "Player.h"
 #include <iostream>
 
-Player::Player() :
+Player::Player(const sf::Texture& textureData) :
 	m_position(400.f, 300.f),
 	m_velocity(0.f, 0.f),
 	m_angle(0.f)
-{
-	if(!m_texture.loadFromFile("images/car.png"))
-	{
-		std::cout << "ERROR LOADING CAR TEXTURE" << std::endl;
-	}
-	
-	m_sprite.setTexture(m_texture);
-	m_sprite.setColor(globals::k_carColours[0]);
+{	
+	m_sprite.setTexture(textureData);
 	m_sprite.setOrigin(22.f, 22.f);
 }
 
@@ -44,6 +38,16 @@ sf::Vector2f Player::GetPosition() const
 void Player::SetPosition(const sf::Vector2f& position)
 {
 	m_position = position;
+}
+
+sf::Color Player::GetColour() const
+{
+	return m_sprite.getColor();
+}
+
+void Player::SetColour(const sf::Color& colour)
+{
+	m_sprite.setColor(colour);
 }
 
 void Player::ChangeVelocity(const float dx, const float dy)

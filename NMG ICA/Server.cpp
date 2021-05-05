@@ -62,6 +62,10 @@ void Server::CheckForNewClients()
 			{
 				if (inData.m_type == eDataPacketType::e_FirstConnection)
 				{
+					// Find the next available colour for the players
+					sf::Color colour = m_carColours[m_connectedClients.size()];
+					std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
+					
 					// Add the new client to the selector - this means we can update all clients
 					m_socketSelector.add(*client);
 					
@@ -71,7 +75,7 @@ void Server::CheckForNewClients()
 					// Tell the client that they are successful
 					sf::Packet outPacket;
 
-					const DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER");
+					const DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER", colour);
 
 					outPacket << outData;
 					
@@ -80,7 +84,8 @@ void Server::CheckForNewClients()
 					outPacket.clear();
 
 					// Tell the other clients that a new client has connected
-					const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, "SERVER");
+					const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, "SERVER", colour);
+					
 					outPacket << updateClientDataPacket;
 
 					SendMessage(updateClientDataPacket, *client);
@@ -122,7 +127,7 @@ void Server::Update(unsigned short port)
 					DataPacket inData;
 					inPacket >> inData;
 
-					std::cout << "Received a message from: " << inData.m_userName << std::endl;
+					// std::cout << "Received a message from: " << inData.m_userName << std::endl;
 
 					if (inData.m_type == eDataPacketType::e_UpdatePosition)
 					{
@@ -137,8 +142,8 @@ void Server::Update(unsigned short port)
 bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 {
 	const sf::Vector2f playerPos(dataToSend.m_x, dataToSend.m_y);
-	std::cout << dataToSend.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
-
+	// std::cout << dataToSend.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
+	
 	//A reference stops this from happening...
 	// sender = nullptr;
 	sf::Packet sendPacket;
@@ -153,6 +158,7 @@ bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 		{
 			if (dataToSend.m_userName != "SERVER")
 			{
+				// std::cout << "Sending a message with code: " << to_string(dataToSend.m_type) << std::endl;
 				client.second->send(sendPacket);
 			}
 		}

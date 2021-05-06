@@ -39,61 +39,69 @@
 
 int main()
 {
-	std::cout << "Enter a username: ";
-
+	bool clientCreated = false;
 	std::string username;
-	std::cin >> username;
 
-	auto client = Client::CreateClient(username, 25565);
+	std::unique_ptr<Client> client;
+	
+	do
+	{
+		username = "";
+		std::cout << "Enter a username: ";
 
+		std::cin >> username;
+
+		client = Client::CreateClient(username, 25565);
+
+		if(client) clientCreated = true;
+	} while (!clientCreated);
+
+	
 	sf::Font gameFont;
 
 	gameFont.loadFromFile("images/gamefont.ttf");
 
-	if (client)
+	sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
+
+	sf::Clock clock;
+
+	// run the program as long as the window is open
+	while (window.isOpen())
 	{
-		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
+		// check all the window's events that were triggered since the last iteration of the loop
+		sf::Event e{};
 
-		sf::Clock clock;
-
-		// run the program as long as the window is open
-		while (window.isOpen())
+		while (window.pollEvent(e))
 		{
-			// check all the window's events that were triggered since the last iteration of the loop
-			sf::Event e{};
-
-			while (window.pollEvent(e))
-			{
-				// "close requested" event: we close the window
-				if (e.type == sf::Event::Closed)
-					window.close();
-			}
-
-			window.clear();
-
-			sf::Time time = clock.restart();
-			const float deltaTime = time.asSeconds();
-
-			if (window.hasFocus())
-			{
-				client->Input(deltaTime);
-			}
-
-			client->Update(deltaTime);
-
-			if (client->Ready())
-			{
-				client->Render(window);
-			}
-			
-			if (!client->Ready())
-			{
-				sf::Text text("Waiting for other players\nto connect...", gameFont, 40);
-				window.draw(text);
-			}
-			
-			window.display();
+			// "close requested" event: we close the window
+			if (e.type == sf::Event::Closed)
+				window.close();
 		}
+
+		window.clear();
+
+		sf::Time time = clock.restart();
+		const float deltaTime = time.asSeconds();
+
+		if (window.hasFocus())
+		{
+			client->Input(deltaTime);
+		}
+
+		client->Update(deltaTime);
+
+		if (client->Ready())
+		{
+			client->Render(window);
+		}
+
+		if (!client->Ready())
+		{
+			sf::Text text("Waiting for other players\nto connect...", gameFont, 40);
+			window.draw(text);
+		}
+
+		window.display();
 	}
 
 	//RenderWindow app(VideoMode(640, 480), "Car Racing Game!");

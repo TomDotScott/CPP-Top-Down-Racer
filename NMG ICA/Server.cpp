@@ -62,34 +62,50 @@ void Server::CheckForNewClients()
 			if (m_connectedClients.size() < m_maxClients)
 			{
 				if (inData.m_type == eDataPacketType::e_FirstConnection)
-				{
-					// Find the next available colour for the players
-					sf::Color colour = m_carColours[m_connectedClients.size()];
-					std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
+				{					
+					if (!globals::is_value_in_map(m_connectedClients, inData.m_userName))
+					{
+						// Find the next available colour for the players
+						sf::Color colour = m_carColours[m_connectedClients.size()];
 
-					// Add the new client to the selector - this means we can update all clients
-					m_socketSelector.add(*client);
+						// To tell the client that they are successful
+						sf::Packet outPacket;
 
-					std::cout << inData.m_userName << " has connected to the server" << std::endl;
-					m_connectedClients.insert(std::make_pair(inData.m_userName, client));
+						DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER", colour);
+						
+						std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
 
-					// Tell the client that they are successful
-					sf::Packet outPacket;
+						// Add the new client to the selector - this means we can update all clients
+						m_socketSelector.add(*client);
 
-					const DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER", colour);
+						std::cout << inData.m_userName << " has connected to the server" << std::endl;
+						
+						m_connectedClients.insert(std::make_pair(inData.m_userName, client));
 
-					outPacket << outData;
+						outPacket << outData;
 
-					client->send(outPacket);
+						client->send(outPacket);
 
-					outPacket.clear();
+						outPacket.clear();
 
-					// Tell the other clients that a new client has connected
-					const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, "SERVER", colour);
+						// Tell the other clients that a new client has connected
+						const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, "SERVER", colour);
 
-					outPacket << updateClientDataPacket;
+						outPacket << updateClientDataPacket;
 
-					SendMessage(updateClientDataPacket, *client);
+						SendMessage(updateClientDataPacket, *client);
+					} else
+					{			
+						std::cout << "A CLIENT WITH THE USERNAME: " << inData.m_userName << " ALREADY EXISTS..." << std::endl;
+
+						sf::Packet usernameRejectionPkt;
+						DataPacket usernameRejectionData(eDataPacketType::e_UserNameRejection, "SERVER");
+						usernameRejectionPkt << usernameRejectionData;
+						
+						client->send(usernameRejectionPkt);
+
+						delete client;
+					}
 				}
 			} else
 			{

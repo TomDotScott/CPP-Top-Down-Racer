@@ -67,23 +67,27 @@ bool Client::Initialise(const unsigned short port)
 	DataPacket inDataPacket;
 	inPacket >> inDataPacket;
 
-	if (inDataPacket.m_type == eDataPacketType::e_UserNameConfirmation)
+	switch (inDataPacket.m_type)
 	{
+	case eDataPacketType::e_UserNameConfirmation:
 		std::cout << "Username confirmed, client connected" << std::endl;
+		
+		std::cout << "The server told me I am: " << static_cast<int>(inDataPacket.m_red) << " " << static_cast<int>(inDataPacket.m_green) << " " << static_cast<int>(inDataPacket.m_blue) << std::endl;
+
+		AddPlayer(m_userName);
+
+		m_players[m_userName].SetColour(
+			{
+				static_cast<sf::Uint8>(inDataPacket.m_red),
+				static_cast<sf::Uint8>(inDataPacket.m_green),
+				static_cast<sf::Uint8>(inDataPacket.m_blue)
+			}
+		);
+		break;
+	case eDataPacketType::e_UserNameRejection:
+		std::cout << "The username is taken, try again" << std::endl;
+		return false;
 	}
-
-	std::cout << "The server told me I am: " << static_cast<int>(inDataPacket.m_red) << " " << static_cast<int>(inDataPacket.m_green) << " " << static_cast<int>(inDataPacket.m_blue) << std::endl;
-
-	AddPlayer(m_userName);
-
-	m_players[m_userName].SetColour(
-		{
-			static_cast<sf::Uint8>(inDataPacket.m_red),
-			static_cast<sf::Uint8>(inDataPacket.m_green),
-			static_cast<sf::Uint8>(inDataPacket.m_blue)
-		}
-	);
-
 	return true;
 }
 

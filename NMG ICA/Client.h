@@ -39,6 +39,7 @@ private:
 	bool Initialise(unsigned short port);
 
 	bool AddPlayer(const std::string& username);
+	bool RemovePlayer(const std::string& username);
 	
 	bool ReceiveMessage();
 	bool SendMessage();

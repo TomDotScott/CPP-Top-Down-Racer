@@ -11,6 +11,7 @@ enum class eDataPacketType : uint8_t
 	e_UserNameConfirmation,
 	e_UserNameRejection,
 	e_NewClient,
+	e_ClientDisconnected,
 	// Used to notify clients if the server is full
 	e_MaxPlayers,
 	e_StartGame,

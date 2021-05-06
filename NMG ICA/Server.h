@@ -27,15 +27,16 @@ private:
 	sf::TcpListener m_listener;
 	sf::SocketSelector m_socketSelector;
 	
-	// TODO: Swap to vector of unique_ptr - ups are 'Owning Handles'
+	// TODO: Swap to map of unique_ptr - ups are 'Owning Handles'
 	std::unordered_map<std::string, sf::TcpSocket*> m_connectedClients;
+	
 	unsigned m_maxClients;
 
 	const std::array<sf::Color, globals::k_playerAmount> m_carColours{
 		sf::Color(255, 0, 0),
 		sf::Color(0, 0, 255),
-		sf::Color(0, 255, 0),
-		sf::Color(255, 255, 0)
+		/*sf::Color(0, 255, 0),
+		sf::Color(255, 255, 0)*/
 	};
 
 	bool m_gameInProgress;

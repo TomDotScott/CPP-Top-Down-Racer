@@ -158,6 +158,17 @@ bool Client::AddPlayer(const std::string& username)
 	return false;
 }
 
+bool Client::RemovePlayer(const std::string& username)
+{
+	if(globals::is_value_in_map(m_players, username))
+	{
+		m_players.erase(username);
+		return true;
+	}
+
+	return false;
+}
+
 bool Client::ReceiveMessage()
 {
 	sf::Packet inPacket;
@@ -203,6 +214,16 @@ bool Client::ReceiveMessage()
 	case eDataPacketType::e_StartGame:
 		std::cout << "The server told me that the game has started..." << std::endl;
 		m_gameStarted = true;
+		break;
+	case eDataPacketType::e_ClientDisconnected: 
+		std::cout << "The server told me that the player: " << inData.m_userName << " disconnected..." << std::endl;
+		if(RemovePlayer(inData.m_userName))
+		{
+			std::cout << "The disconnected player: " << inData.m_userName << " was removed successfully..." << std::endl;
+		}else
+		{
+			std::cout << "There was an error trying to remove " << inData.m_userName << "\n\t They may have been removed already...." << std::endl;
+		}
 		break;
 	default:;
 	}

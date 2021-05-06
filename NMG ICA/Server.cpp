@@ -14,7 +14,7 @@ std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
 }
 
 Server::Server() :
-	m_maxClients(globals::k_maxClients),
+	m_maxClients(globals::k_playerAmount),
 	m_gameInProgress(false)
 {
 
@@ -62,7 +62,7 @@ void Server::CheckForNewClients()
 			if (m_connectedClients.size() < m_maxClients)
 			{
 				if (inData.m_type == eDataPacketType::e_FirstConnection)
-				{					
+				{
 					if (!globals::is_value_in_map(m_connectedClients, inData.m_userName))
 					{
 						// Find the next available colour for the players
@@ -72,14 +72,14 @@ void Server::CheckForNewClients()
 						sf::Packet outPacket;
 
 						DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER", colour);
-						
+
 						std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
 
 						// Add the new client to the selector - this means we can update all clients
 						m_socketSelector.add(*client);
 
 						std::cout << inData.m_userName << " has connected to the server" << std::endl;
-						
+
 						m_connectedClients.insert(std::make_pair(inData.m_userName, client));
 
 						outPacket << outData;
@@ -95,13 +95,13 @@ void Server::CheckForNewClients()
 
 						SendMessage(updateClientDataPacket, *client);
 					} else
-					{			
+					{
 						std::cout << "A CLIENT WITH THE USERNAME: " << inData.m_userName << " ALREADY EXISTS..." << std::endl;
 
 						sf::Packet usernameRejectionPkt;
 						DataPacket usernameRejectionData(eDataPacketType::e_UserNameRejection, "SERVER");
 						usernameRejectionPkt << usernameRejectionData;
-						
+
 						client->send(usernameRejectionPkt);
 
 						delete client;
@@ -131,7 +131,6 @@ void Server::Update(unsigned short port)
 {
 	if (m_socketSelector.wait())
 	{
-
 		CheckForNewClients();
 
 		if (m_connectedClients.size() == m_maxClients)
@@ -152,17 +151,49 @@ void Server::Update(unsigned short port)
 			if (client.second && m_socketSelector.isReady(*client.second))
 			{
 				sf::Packet inPacket;
-				if (client.second->receive(inPacket) == sf::Socket::Done)
+				const auto clientStatus = client.second->receive(inPacket);
+
+				if (clientStatus == sf::Socket::Done)
 				{
 					DataPacket inData;
-					inPacket >> inData;
 
-					// std::cout << "Received a message from: " << inData.m_userName << std::endl;
+					inPacket >> inData;
 
 					if (inData.m_type == eDataPacketType::e_UpdatePosition)
 					{
 						SendMessage(inData, *client.second);
 					}
+				}
+
+				if (clientStatus == sf::Socket::Disconnected)
+				{
+					std::string disconnectedClientUsername = client.first;
+					
+					std::cout << "PLAYER WITH THE USERNAME: " << disconnectedClientUsername << " DISCONNECTED FROM THE SERVER" << std::endl;
+
+					m_socketSelector.remove(*client.second);
+
+					client.second->disconnect();
+					
+					// Delete the allocated memory
+					delete client.second;
+
+					// Remove from the map
+					m_connectedClients.erase(client.first);
+					
+					// See if it was the last person to leave
+					if (m_connectedClients.empty())
+					{
+						m_gameInProgress = false;
+					}
+
+					// Tell the other clients that a client disconnected
+					sf::Packet clientDisconnectedPkt;
+					
+					DataPacket clientDisconnectedData(eDataPacketType::e_ClientDisconnected, disconnectedClientUsername);
+
+					clientDisconnectedPkt << clientDisconnectedData;
+					SendMessage(clientDisconnectedData);
 				}
 			}
 		}

@@ -114,9 +114,31 @@ void Client::Update(const float deltaTime)
 
 void Client::Render(sf::RenderWindow& window)
 {
-	for (auto& player : m_players)
+	if (!m_gameStarted)
 	{
-		player.second.Render(window);
+		m_text.setPosition(
+			static_cast<float>(globals::k_screenWidth) / 2.f - m_text.getGlobalBounds().width / 2,
+			static_cast<float>(globals::k_screenHeight) / 2.f - m_text.getGlobalBounds().height
+		);
+		
+		window.draw(m_text);
+	}else
+	{
+		for (auto& player : m_players)
+		{
+			// Render username above the player's car
+			m_text.setString(player.first);
+			
+			m_text.setCharacterSize(15);
+			
+			const sf::Vector2f& playerPosition = player.second.GetPosition();
+			
+			m_text.setPosition(playerPosition.x - m_text.getGlobalBounds().width / 2, playerPosition.y - m_text.getGlobalBounds().height - 30);
+
+			window.draw(m_text);
+
+			player.second.Render(window);
+		}
 	}
 }
 
@@ -216,7 +238,8 @@ Client::Client(const std::string& username) :
 	m_playerMoved(false),
 	m_gameStarted(false)
 {
-
+	m_text.setString("Waiting for other players\nto connect...");
+	m_text.setCharacterSize(60);
 }
 
 void Client::Input(const float deltaTime)
@@ -247,4 +270,9 @@ void Client::Input(const float deltaTime)
 bool Client::Ready() const
 {
 	return m_gameStarted;
+}
+
+void Client::SetGameFont(const sf::Font& font)
+{
+	m_text.setFont(font);
 }

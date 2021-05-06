@@ -14,7 +14,7 @@ std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
 }
 
 Server::Server() :
-	m_maxClients(2),
+	m_maxClients(globals::k_maxClients),
 	m_gameInProgress(false)
 {
 

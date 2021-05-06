@@ -19,6 +19,8 @@ public:
 
 	bool Ready() const;
 
+	void SetGameFont(const sf::Font& font);
+
 private:
 	sf::IpAddress m_server;
 	sf::TcpSocket m_socket;
@@ -30,7 +32,9 @@ private:
 	bool m_gameStarted;
 	
 	std::unordered_map<std::string, Player> m_players;
+	
 	sf::Texture m_texture;
+	sf::Text m_text;
 
 	bool Initialise(unsigned short port);
 

@@ -43,7 +43,7 @@ int main()
 	std::string username;
 
 	std::unique_ptr<Client> client;
-	
+
 	do
 	{
 		username = "";
@@ -53,15 +53,17 @@ int main()
 
 		client = Client::CreateClient(username, 25565);
 
-		if(client) clientCreated = true;
+		if (client) clientCreated = true;
 	} while (!clientCreated);
 
-	
+
 	sf::Font gameFont;
 
 	gameFont.loadFromFile("images/gamefont.ttf");
 
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
+	client->SetGameFont(gameFont);
+
+	sf::RenderWindow window(sf::VideoMode(globals::k_screenWidth, globals::k_screenHeight), "Racing Game: " + username);
 
 	sf::Clock clock;
 
@@ -89,18 +91,8 @@ int main()
 		}
 
 		client->Update(deltaTime);
-
-		if (client->Ready())
-		{
-			client->Render(window);
-		}
-
-		if (!client->Ready())
-		{
-			sf::Text text("Waiting for other players\nto connect...", gameFont, 40);
-			window.draw(text);
-		}
-
+		client->Render(window);
+		
 		window.display();
 	}
 

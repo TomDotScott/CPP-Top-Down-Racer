@@ -46,9 +46,12 @@ int main()
 
 	auto client = Client::CreateClient(username, 25565);
 
+	sf::Font gameFont;
+
+	gameFont.loadFromFile("images/gamefont.ttf");
+
 	if (client)
 	{
-
 		sf::RenderWindow window(sf::VideoMode(800, 600), "Racing Game: " + username);
 
 		sf::Clock clock;
@@ -75,10 +78,20 @@ int main()
 			{
 				client->Input(deltaTime);
 			}
-			
-			client->Update(deltaTime);
-			client->Render(window);
 
+			client->Update(deltaTime);
+
+			if (client->Ready())
+			{
+				client->Render(window);
+			}
+			
+			if (!client->Ready())
+			{
+				sf::Text text("Waiting for other players\nto connect...", gameFont, 40);
+				window.draw(text);
+			}
+			
 			window.display();
 		}
 	}

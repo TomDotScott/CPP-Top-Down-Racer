@@ -37,10 +37,13 @@ private:
 		sf::Color(0, 255, 0),
 		sf::Color(255, 255, 0)
 	};
+
+	bool m_gameInProgress;
 	
 	Server();
 	bool Initialise(unsigned short port);
 	void CheckForNewClients();
 	bool SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender);
+	bool SendMessage(const DataPacket& dataToSend);
 	bool ReceiveMessage();
 };

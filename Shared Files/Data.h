@@ -11,25 +11,11 @@ enum class eDataPacketType : uint8_t
 	e_UserNameConfirmation,
 	e_UserNameRejection,
 	e_NewClient,
-	e_MaxPlayers,
 	// Used to notify clients if the server is full
+	e_MaxPlayers,
+	e_StartGame,
 	e_UpdatePosition
 };
-
-inline const char* to_string(eDataPacketType e)
-{
-	switch (e)
-	{
-		case eDataPacketType::e_None: return "e_None";
-		case eDataPacketType::e_FirstConnection: return "e_FirstConnection";
-		case eDataPacketType::e_UserNameConfirmation: return "e_UserNameConfirmation";
-		case eDataPacketType::e_UserNameRejection: return "e_UserNameRejection";
-		case eDataPacketType::e_NewClient: return "e_NewClient";
-		case eDataPacketType::e_MaxPlayers: return "e_MaxPlayers";
-		case eDataPacketType::e_UpdatePosition: return "e_UpdatePosition";
-		default: return "unknown";
-	}
-}
 
 // Sending enums via sf::Packet https://en.sfml-dev.org/forums/index.php?topic=17075.0
 template<typename T>

@@ -14,7 +14,8 @@ std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
 }
 
 Server::Server() :
-	m_maxClients(8)
+	m_maxClients(2),
+	m_gameInProgress(false)
 {
 
 }
@@ -65,10 +66,10 @@ void Server::CheckForNewClients()
 					// Find the next available colour for the players
 					sf::Color colour = m_carColours[m_connectedClients.size()];
 					std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
-					
+
 					// Add the new client to the selector - this means we can update all clients
 					m_socketSelector.add(*client);
-					
+
 					std::cout << inData.m_userName << " has connected to the server" << std::endl;
 					m_connectedClients.insert(std::make_pair(inData.m_userName, client));
 
@@ -78,14 +79,14 @@ void Server::CheckForNewClients()
 					const DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER", colour);
 
 					outPacket << outData;
-					
+
 					client->send(outPacket);
 
 					outPacket.clear();
 
 					// Tell the other clients that a new client has connected
 					const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, "SERVER", colour);
-					
+
 					outPacket << updateClientDataPacket;
 
 					SendMessage(updateClientDataPacket, *client);
@@ -93,13 +94,13 @@ void Server::CheckForNewClients()
 			} else
 			{
 				std::cout << "MAXIMUM AMOUNT OF CLIENTS CONNECTED" << std::endl;
-				
+
 				sf::Packet maxClientMessagePkt;
 				const DataPacket maximumClientMessage(eDataPacketType::e_MaxPlayers, "SERVER");
 				maxClientMessagePkt << maximumClientMessage;
-				
+
 				client->send(maxClientMessagePkt);
-				
+
 				delete client;
 			}
 		} else
@@ -114,15 +115,28 @@ void Server::Update(unsigned short port)
 {
 	if (m_socketSelector.wait())
 	{
+
 		CheckForNewClients();
 
-		// Loop through each client and use our new, fancy, socket selector
-		for(auto& client : m_connectedClients)
+		if (m_connectedClients.size() == m_maxClients)
 		{
-			if(client.second && m_socketSelector.isReady(*client.second))
+			if (!m_gameInProgress)
+			{
+				m_gameInProgress = true;
+				std::cout << m_maxClients << " have connected, starting the game..." << std::endl;
+
+				const DataPacket outDataPacket(eDataPacketType::e_StartGame, "SERVER");
+				SendMessage(outDataPacket);
+			}
+		}
+
+		// Loop through each client and use our new, fancy, socket selector
+		for (auto& client : m_connectedClients)
+		{
+			if (client.second && m_socketSelector.isReady(*client.second))
 			{
 				sf::Packet inPacket;
-				if(client.second->receive(inPacket) == sf::Socket::Done)
+				if (client.second->receive(inPacket) == sf::Socket::Done)
 				{
 					DataPacket inData;
 					inPacket >> inData;
@@ -142,12 +156,7 @@ void Server::Update(unsigned short port)
 bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 {
 	const sf::Vector2f playerPos(dataToSend.m_x, dataToSend.m_y);
-	// std::cout << dataToSend.m_userName << " moved to position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
-	
-	//A reference stops this from happening...
-	// sender = nullptr;
 	sf::Packet sendPacket;
-
 	sendPacket << dataToSend;
 
 	// update the other connected clients
@@ -158,12 +167,24 @@ bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 		{
 			if (dataToSend.m_userName != "SERVER")
 			{
-				// std::cout << "Sending a message with code: " << to_string(dataToSend.m_type) << std::endl;
 				client.second->send(sendPacket);
 			}
 		}
 	}
-	
+
+	return true;
+}
+
+bool Server::SendMessage(const DataPacket& dataToSend)
+{
+	sf::Packet sendPacket;
+	sendPacket << dataToSend;
+
+	// update the other connected clients
+	for (auto& client : m_connectedClients)
+	{
+		client.second->send(sendPacket);
+	}
 	return true;
 }
 

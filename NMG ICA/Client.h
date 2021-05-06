@@ -17,6 +17,8 @@ public:
 
 	void Input(float deltaTime);
 
+	bool Ready() const;
+
 private:
 	sf::IpAddress m_server;
 	sf::TcpSocket m_socket;
@@ -25,6 +27,8 @@ private:
 	float m_packetTimer;
 	bool m_playerMoved;
 
+	bool m_gameStarted;
+	
 	std::unordered_map<std::string, Player> m_players;
 	sf::Texture m_texture;
 

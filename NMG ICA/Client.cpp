@@ -75,7 +75,7 @@ bool Client::Initialise(const unsigned short port)
 	std::cout << "The server told me I am: " << static_cast<int>(inDataPacket.m_red) << " " << static_cast<int>(inDataPacket.m_green) << " " << static_cast<int>(inDataPacket.m_blue) << std::endl;
 
 	AddPlayer(m_userName);
-	
+
 	m_players[m_userName].SetColour(
 		{
 			static_cast<sf::Uint8>(inDataPacket.m_red),
@@ -90,17 +90,20 @@ bool Client::Initialise(const unsigned short port)
 
 void Client::Update(const float deltaTime)
 {
-	m_players[m_userName].Update(deltaTime);
-
-	// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
-	m_packetTimer += deltaTime;
-
-	if (m_packetTimer >= m_packetDelay)
+	if (m_gameStarted)
 	{
-		SendMessage();
-		m_packetTimer = 0.f;
-	}
+		m_players[m_userName].Update(deltaTime);
 
+		// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
+		m_packetTimer += deltaTime;
+
+		if (m_packetTimer >= m_packetDelay)
+		{
+			SendMessage();
+			m_packetTimer = 0.f;
+		}
+	}
+	
 	ReceiveMessage();
 	m_playerMoved = false;
 }
@@ -115,13 +118,16 @@ void Client::Render(sf::RenderWindow& window)
 
 bool Client::AddPlayer(const std::string& username)
 {
-	if(!globals::is_value_in_map(m_players, username))
+	if (username != "SERVER")
 	{
-		std::cout << "Adding: " << username << " to the map..." << std::endl;
-		m_players.insert(std::make_pair(username, Player(m_texture)));
+		if (!globals::is_value_in_map(m_players, username))
+		{
+			std::cout << "Adding: " << username << " to the map..." << std::endl;
+			m_players.insert(std::make_pair(username, Player(m_texture)));
 
-		std::cout << "The new map size is: " << m_players.size() << std::endl;
-		return true;
+			std::cout << "The new map size is: " << m_players.size() << std::endl;
+			return true;
+		}
 	}
 	return false;
 }
@@ -168,6 +174,10 @@ bool Client::ReceiveMessage()
 		m_players[inData.m_userName].SetPosition({ inData.m_x, inData.m_y });
 		m_players[inData.m_userName].SetAngle(inData.m_angle);
 		break;
+	case eDataPacketType::e_StartGame:
+		std::cout << "The server told me that the game has started..." << std::endl;
+		m_gameStarted = true;
+		break;
 	default:;
 	}
 
@@ -199,7 +209,8 @@ Client::Client(const std::string& username) :
 	m_userName(username),
 	m_packetDelay(0.05f),
 	m_packetTimer(0.f),
-	m_playerMoved(false)
+	m_playerMoved(false),
+	m_gameStarted(false)
 {
 
 }
@@ -227,4 +238,9 @@ void Client::Input(const float deltaTime)
 		m_players[m_userName].ChangeVelocity(0, globals::k_carSpeed * deltaTime);
 		m_playerMoved = true;
 	}
+}
+
+bool Client::Ready() const
+{
+	return m_gameStarted;
 }

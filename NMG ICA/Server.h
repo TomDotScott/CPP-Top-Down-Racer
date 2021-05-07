@@ -34,8 +34,8 @@ private:
 
 	const std::array<sf::Color, globals::k_playerAmount> m_carColours{
 		sf::Color(255, 0, 0),
-		sf::Color(0, 0, 255),
-		/*sf::Color(0, 255, 0),
+		/*sf::Color(0, 0, 255),
+		sf::Color(0, 255, 0),
 		sf::Color(255, 255, 0)*/
 	};
 

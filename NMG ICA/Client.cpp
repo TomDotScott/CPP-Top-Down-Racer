@@ -22,11 +22,11 @@ std::unique_ptr<Client> Client::CreateClient(const std::string& username, const 
 
 bool Client::Initialise(const unsigned short port)
 {
-	if (!m_texture.loadFromFile("images/car.png"))
+	if (!m_carTexture.loadFromFile("images/car.png"))
 	{
 		return false;
 	}
-
+	
 	m_server = sf::IpAddress::getLocalAddress();
 
 	// Connect to the server
@@ -124,6 +124,8 @@ void Client::Render(sf::RenderWindow& window)
 		window.draw(m_text);
 	}else
 	{
+		m_background.Render(window);
+		
 		for (auto& player : m_players)
 		{
 			// Render username above the player's car
@@ -149,7 +151,7 @@ bool Client::AddPlayer(const std::string& username)
 		if (!globals::is_value_in_map(m_players, username))
 		{
 			std::cout << "Adding: " << username << " to the map..." << std::endl;
-			m_players.insert(std::make_pair(username, Player(m_texture)));
+			m_players.insert(std::make_pair(username, Player(m_carTexture)));
 
 			std::cout << "The new map size is: " << m_players.size() << std::endl;
 			return true;

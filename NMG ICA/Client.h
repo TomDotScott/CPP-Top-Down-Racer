@@ -4,7 +4,10 @@
 #include <SFML/Graphics.hpp>
 #include <utility>
 
+
+#include "Background.h"
 #include "Player.h"
+
 
 class Client
 {
@@ -33,7 +36,8 @@ private:
 	
 	std::unordered_map<std::string, Player> m_players;
 	
-	sf::Texture m_texture;
+	sf::Texture m_carTexture;
+	Background m_background;
 	sf::Text m_text;
 
 	bool Initialise(unsigned short port);

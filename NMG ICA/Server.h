@@ -9,15 +9,20 @@
 
 struct Client
 {
-	Client() = default;
-	
-	Client(sf::TcpSocket* socketPtr) :
-		m_socket(socketPtr),
-		m_position(0.f, 0.f),
+	Client() :
+		m_socket(nullptr),
+		m_position(),
 		m_angle(0.f)
 	{
+	};
+
+	Client(sf::TcpSocket* socketPtr, const sf::Vector2f& position, const float angle) :
+		m_socket(socketPtr),
+		m_position(position),
+		m_angle(angle)
+	{
 	}
-	
+
 	// TODO: Swap to unique_ptr - ups are 'Owning Handles'
 	sf::TcpSocket* m_socket;
 	sf::Vector2f m_position;
@@ -53,6 +58,13 @@ private:
 		sf::Color(0, 0, 255),
 		/*sf::Color(0, 255, 0),
 		sf::Color(255, 255, 0)*/
+	};
+
+	const std::array<sf::Vector2f, globals::k_playerAmount> m_carStartingPositions{
+		sf::Vector2f(779.f, 558.f),
+		sf::Vector2f(779.f, 616.f),
+		/*sf::Vector2f(772.f, 558.f),
+		sf::Vector2f(722.f, 616.f)*/
 	};
 
 	bool m_gameInProgress;

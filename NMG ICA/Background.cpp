@@ -22,7 +22,7 @@ void Background::CheckCollisions(Player& player) const
 		static_cast<unsigned>(playerPosition.y)
 	);
 	
-	if (playerPixel == sf::Color::Black){
+	if (playerPixel == sf::Color::Black || playerPixel == sf::Color::White){
 		player.SetSpeed(globals::k_carTrackSpeed);
 	}else
 	{

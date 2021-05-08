@@ -70,20 +70,28 @@ void Server::CheckForNewClients()
 						// Find the next available colour for the players
 						sf::Color colour = m_carColours[m_connectedClients.size()];
 
+						// Find the next available starting position for the players
+						sf::Vector2f startingPosition = m_carStartingPositions[m_connectedClients.size()];
+						
 						// To tell the client that they are successful
 						sf::Packet outPacket;
 
-						DataPacket outData(eDataPacketType::e_UserNameConfirmation, globals::k_reservedServerUsername, 0.f, 0.f, 0.f, colour);
-
-						std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
+						DataPacket outData(
+							eDataPacketType::e_UserNameConfirmation, 
+							globals::k_reservedServerUsername, 
+							startingPosition.x, 
+							startingPosition.y, 
+							globals::k_carStartingRotation,
+							colour
+						);
 
 						// Add the new client to the selector - this means we can update all clients
 						m_socketSelector.add(*newTcpSocket);
 
 						std::cout << inData.m_userName << " has connected to the server" << std::endl;
 
-						Client client(newTcpSocket);
-
+						Client client(newTcpSocket, startingPosition, globals::k_carStartingRotation);
+						
 						m_connectedClients.insert(std::make_pair(inData.m_userName, client));
 
 						outPacket << outData;
@@ -93,7 +101,14 @@ void Server::CheckForNewClients()
 						outPacket.clear();
 
 						// Tell the other clients that a new client has connected
-						const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, globals::k_reservedServerUsername, colour);
+						const DataPacket updateClientDataPacket(
+							eDataPacketType::e_NewClient, 
+							globals::k_reservedServerUsername, 
+							startingPosition.x, 
+							startingPosition.y, 
+							globals::k_carStartingRotation,
+							colour
+						);
 
 						outPacket << updateClientDataPacket;
 
@@ -144,7 +159,7 @@ void Server::CheckCollisionsBetweenClients()
 
 				bool collisionOccurred = false;
 				
-				while (dx * dx + dy * dy < 4 * 10.f * 17.f)
+				while (dx * dx + dy * dy < 8 * 10.f * 17.f)
 				{
 					collisionOccurred = true;
 					
@@ -256,7 +271,7 @@ void Server::Update(unsigned short port)
 				}
 			}
 		}
-
+		
 		// Check collisions and update the clients accordingly...
 		CheckCollisionsBetweenClients();
 	}

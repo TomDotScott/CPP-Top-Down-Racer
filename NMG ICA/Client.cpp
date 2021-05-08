@@ -70,8 +70,6 @@ bool Client::Initialise(const unsigned short port)
 	case eDataPacketType::e_UserNameConfirmation:
 		std::cout << "Username confirmed, client connected" << std::endl;
 		
-		std::cout << "The server told me I am: " << static_cast<int>(inDataPacket.m_red) << " " << static_cast<int>(inDataPacket.m_green) << " " << static_cast<int>(inDataPacket.m_blue) << std::endl;
-
 		AddPlayer(m_userName);
 
 		m_players[m_userName].SetColour(
@@ -81,6 +79,16 @@ bool Client::Initialise(const unsigned short port)
 				static_cast<sf::Uint8>(inDataPacket.m_blue)
 			}
 		);
+
+		m_players[m_userName].SetPosition(
+			{
+				inDataPacket.m_x,
+				inDataPacket.m_y
+			}
+		);
+
+		m_players[m_userName].SetAngle(inDataPacket.m_angle);
+		
 		break;
 	case eDataPacketType::e_UserNameRejection:
 		std::cout << "The username is taken, try again" << std::endl;
@@ -224,7 +232,14 @@ bool Client::ReceiveMessage()
 			}
 		);
 
-		std::cout << "The server told me the new clients are: " << static_cast<int>(inData.m_red) << " " << static_cast<int>(inData.m_green) << " " << static_cast<int>(inData.m_blue) << std::endl;
+		m_players[inData.m_userName].SetPosition(
+			{
+				inData.m_x,
+				inData.m_y
+			}
+		);
+
+		m_players[inData.m_userName].SetAngle(inData.m_angle);
 	}
 
 	switch (inData.m_type)

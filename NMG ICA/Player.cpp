@@ -2,12 +2,41 @@
 #include <iostream>
 
 Player::Player(const sf::Texture& textureData) :
+	m_speed(globals::k_carTrackSpeed),
 	m_position(400.f, 300.f),
 	m_velocity(0.f, 0.f),
 	m_angle(0.f)
-{	
+{
 	m_sprite.setTexture(textureData);
-	m_sprite.setOrigin(22.f, 22.f);
+	m_sprite.setOrigin(10.f, 17.f);
+}
+
+bool Player::Input(const float deltaTime)
+{
+	bool hasPlayerMoved = false;
+	
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+	{
+		ChangeAngle(-3.14f * deltaTime);
+		hasPlayerMoved = true;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+	{
+		ChangeAngle(3.14f * deltaTime);
+		hasPlayerMoved = true;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+	{
+		ChangeVelocity(0, -m_speed * deltaTime);
+		hasPlayerMoved = true;
+	} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+	{
+		ChangeVelocity(0, m_speed * deltaTime);
+		hasPlayerMoved = true;
+	}
+
+	return hasPlayerMoved;
 }
 
 
@@ -20,6 +49,24 @@ void Player::Update(const float deltaTime)
 
 	m_position += m_velocity;
 
+	// Clamp the player's position to be onscreen
+	if (m_position.x < 0)
+	{
+		m_position.x = 0;
+	}
+	if (m_position.y < 0)
+	{
+		m_position.y = 0;
+	}
+	if (m_position.x > globals::k_screenWidth)
+	{
+		m_position.x = globals::k_screenWidth;
+	}
+	if (m_position.y > globals::k_screenHeight)
+	{
+		m_position.y = globals::k_screenHeight;
+	}
+	
 	m_velocity = { 0.f, 0.f };
 }
 
@@ -69,4 +116,9 @@ void Player::SetAngle(const float angle)
 void Player::ChangeAngle(const float deltaAngle)
 {
 	m_angle += deltaAngle;
+}
+
+void Player::SetSpeed(const float speed)
+{
+	m_speed = speed;
 }

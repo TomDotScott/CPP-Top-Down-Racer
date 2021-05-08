@@ -98,6 +98,11 @@ void Client::Update(const float deltaTime)
 	{
 		m_players[m_userName].Update(deltaTime);
 
+		for(auto& player : m_players)
+		{
+			m_background.CheckCollisions(player.second);
+		}
+		
 		// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
 		m_packetTimer += deltaTime;
 
@@ -142,6 +147,11 @@ void Client::Render(sf::RenderWindow& window)
 			player.second.Render(window);
 		}
 	}
+}
+
+void Client::Input(const float deltaTime)
+{
+	m_players[m_userName].Input(deltaTime);
 }
 
 bool Client::AddPlayer(const std::string& username)
@@ -263,31 +273,6 @@ Client::Client(const std::string& username) :
 {
 	m_text.setString("Waiting for other players\nto connect...");
 	m_text.setCharacterSize(60);
-}
-
-void Client::Input(const float deltaTime)
-{
-	m_playerMoved = false;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-	{
-		m_players[m_userName].ChangeAngle(-3.14f * deltaTime);
-		m_playerMoved = true;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-	{
-		m_players[m_userName].ChangeAngle(3.14f * deltaTime);
-		m_playerMoved = true;
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-	{
-		m_players[m_userName].ChangeVelocity(0, -globals::k_carSpeed * deltaTime);
-		m_playerMoved = true;
-	} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-	{
-		m_players[m_userName].ChangeVelocity(0, globals::k_carSpeed * deltaTime);
-		m_playerMoved = true;
-	}
 }
 
 bool Client::Ready() const

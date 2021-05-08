@@ -2,8 +2,6 @@
 #include <unordered_map>
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
-#include <utility>
-
 
 #include "Background.h"
 #include "Player.h"
@@ -14,14 +12,10 @@ class Client
 public:
 	static std::unique_ptr<Client> CreateClient(const std::string& username, unsigned short port);
 
-	void Update(float deltaTime);
-
-	void Render(sf::RenderWindow& window);
-
 	void Input(float deltaTime);
-
+	void Update(float deltaTime);
+	void Render(sf::RenderWindow& window);
 	bool Ready() const;
-
 	void SetGameFont(const sf::Font& font);
 
 private:

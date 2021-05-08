@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include <list>
 #include <unordered_map>
 #include <SFML/Network.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <array>
 
 #include "Globals.h"
 #include "../Shared Files/Data.h"

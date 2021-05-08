@@ -13,12 +13,24 @@ Background::Background()
 	
 }
 
-void Background::CheckCollisions(Player& player)
+void Background::CheckCollisions(Player& player) const
 {
+	const sf::Vector2f playerPosition = player.GetPosition();
 	
+	const auto playerPixel = m_image.getPixel(
+		static_cast<unsigned>(playerPosition.x),                    
+		static_cast<unsigned>(playerPosition.y)
+	);
+	
+	if (playerPixel == sf::Color::Black){
+		player.SetSpeed(globals::k_carTrackSpeed);
+	}else
+	{
+		player.SetSpeed(globals::k_carGrassSpeed);
+	}
 }
 
-void Background::Render(sf::RenderWindow& window)
+void Background::Render(sf::RenderWindow& window) const
 {
 	const sf::Sprite sprite(m_texture);
 	window.draw(sprite);

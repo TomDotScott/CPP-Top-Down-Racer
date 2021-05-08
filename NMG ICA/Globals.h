@@ -1,12 +1,11 @@
 ﻿#pragma once
-#include <array>
 #include <unordered_map>
-#include <SFML/Graphics/Color.hpp>
 
 namespace globals
 {
 	constexpr int k_playerAmount = 1;
-	constexpr float k_carSpeed = 100.f;
+	constexpr float k_carTrackSpeed = 150.f;
+	constexpr float k_carGrassSpeed = 50.f;
 
 	constexpr int k_screenWidth = 1024;
 	constexpr int k_screenHeight = 768;

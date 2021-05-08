@@ -1,5 +1,7 @@
 ﻿#include "Server.h"
+
 #include <iostream>
+
 #include "../Shared Files/Data.h"
 
 std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
@@ -202,7 +204,6 @@ void Server::Update(unsigned short port)
 
 bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 {
-	const sf::Vector2f playerPos(dataToSend.m_x, dataToSend.m_y);
 	sf::Packet sendPacket;
 	sendPacket << dataToSend;
 

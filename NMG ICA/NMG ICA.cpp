@@ -1,6 +1,4 @@
-#include <cassert>
 #include <iostream>
-#include <SFML/Network.hpp>
 #include "Client.h"
 #include "Player.h"
 

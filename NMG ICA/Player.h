@@ -1,6 +1,7 @@
 ﻿#pragma once
-#include <SFML/Graphics.hpp>
 #include <cmath>
+#include <unordered_map>
+#include <SFML/Graphics.hpp>
 
 #include "Globals.h"
 
@@ -23,10 +24,9 @@ public:
 	void ChangeVelocity(const float dx, const float dy);
 
 	float GetAngle() const;
-	void  SetAngle(const float angle);
-	void  ChangeAngle(const float deltaAngle);
+	void SetAngle(const float angle);
+	void ChangeAngle(const float deltaAngle);
 	void SetSpeed(const float speed);
-
 	sf::FloatRect GetGlobalBounds() const;
 
 private:
@@ -37,4 +37,5 @@ private:
 	sf::Vector2f m_velocity;
 	
 	float m_angle;
+
 };

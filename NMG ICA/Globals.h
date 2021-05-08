@@ -3,11 +3,16 @@
 
 namespace globals
 {
-	constexpr int k_playerAmount = 2;
+	constexpr int k_playerAmount = 1;
 	constexpr float k_carTrackSpeed = 150.f;
 	constexpr float k_carGrassSpeed = 50.f;
 	constexpr float k_carStartingRotation = 1.5708f;
 
+	constexpr int k_numCheckPoints = 6;
+	constexpr float k_checkPointWidth = 50.f;
+	constexpr float k_checkPointHeight = 150.f;
+	
+	
 	const std::string k_reservedServerUsername = "SERVER";
 	
 	constexpr int k_screenWidth = 1024;

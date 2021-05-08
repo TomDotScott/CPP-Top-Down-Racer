@@ -72,15 +72,15 @@ void Server::CheckForNewClients()
 
 						// Find the next available starting position for the players
 						sf::Vector2f startingPosition = m_carStartingPositions[m_connectedClients.size()];
-						
+
 						// To tell the client that they are successful
 						sf::Packet outPacket;
 
 						DataPacket outData(
-							eDataPacketType::e_UserNameConfirmation, 
-							globals::k_reservedServerUsername, 
-							startingPosition.x, 
-							startingPosition.y, 
+							eDataPacketType::e_UserNameConfirmation,
+							globals::k_reservedServerUsername,
+							startingPosition.x,
+							startingPosition.y,
 							globals::k_carStartingRotation,
 							colour
 						);
@@ -91,7 +91,7 @@ void Server::CheckForNewClients()
 						std::cout << inData.m_userName << " has connected to the server" << std::endl;
 
 						Client client(newTcpSocket, startingPosition, globals::k_carStartingRotation);
-						
+
 						m_connectedClients.insert(std::make_pair(inData.m_userName, client));
 
 						outPacket << outData;
@@ -102,10 +102,10 @@ void Server::CheckForNewClients()
 
 						// Tell the other clients that a new client has connected
 						const DataPacket updateClientDataPacket(
-							eDataPacketType::e_NewClient, 
-							globals::k_reservedServerUsername, 
-							startingPosition.x, 
-							startingPosition.y, 
+							eDataPacketType::e_NewClient,
+							globals::k_reservedServerUsername,
+							startingPosition.x,
+							startingPosition.y,
 							globals::k_carStartingRotation,
 							colour
 						);
@@ -158,28 +158,28 @@ void Server::CheckCollisionsBetweenClients()
 				float dy = client.second.m_position.y - otherClient.second.m_position.y;
 
 				bool collisionOccurred = false;
-				
+
 				while (dx * dx + dy * dy < 8 * 10.f * 17.f)
 				{
 					collisionOccurred = true;
-					
+
 					client.second.m_position.x += dx / 10.f;
 					client.second.m_position.x += dy / 10.f;
 					otherClient.second.m_position.x -= dx / 10.f;
 					otherClient.second.m_position.x -= dy / 10.f;
 					dx = client.second.m_position.x - otherClient.second.m_position.x;
 					dy = client.second.m_position.y - otherClient.second.m_position.y;
-					
+
 					if (dx == 0 && dy == 0)
 						break;
 				}
 
 				// If a collision occurred and was resolved, update the clients
-				if(collisionOccurred)
+				if (collisionOccurred)
 				{
 					DataPacket playerOneCollisionData(eDataPacketType::e_CollisionData, client.first, client.second.m_position, otherClient.first);
 					SendMessage(playerOneCollisionData, client.first);
-					
+
 					DataPacket playerTwoCollisionData(eDataPacketType::e_CollisionData, otherClient.first, otherClient.second.m_position, client.first);
 					SendMessage(playerTwoCollisionData, otherClient.first);
 				}
@@ -230,12 +230,40 @@ void Server::Update(unsigned short port)
 
 					inPacket >> inData;
 
-					if (inData.m_type == eDataPacketType::e_UpdatePosition)
+					switch (inData.m_type)
 					{
+					case eDataPacketType::e_UpdatePosition:
 						client.second.m_position = { inData.m_x, inData.m_y };
 						client.second.m_angle = inData.m_angle;
 
 						BroadcastMessage(inData, *client.second.m_socket);
+						break;
+					case eDataPacketType::e_CheckPointPassed:
+					{
+						// update the map
+						client.second.m_checkPointTriggers[inData.m_checkPointPassed] = true;
+
+						// See if they have passed a lap
+						int checkPointCounter = 0;
+						for (auto& checkPoint : client.second.m_checkPointTriggers)
+						{
+							if (checkPoint.second)
+							{
+								checkPointCounter++;
+							}
+						}
+
+						// We've lapped!
+						if (checkPointCounter == globals::k_numCheckPoints)
+						{
+							// Tell the client that they have completed a lap
+							DataPacket lapCompletedDataPacket(eDataPacketType::e_LapCompleted, globals::k_reservedServerUsername);
+							SendMessage(lapCompletedDataPacket, client.first);
+						}
+					}
+					break;
+					default:
+						break;
 					}
 				}
 
@@ -271,7 +299,7 @@ void Server::Update(unsigned short port)
 				}
 			}
 		}
-		
+
 		// Check collisions and update the clients accordingly...
 		CheckCollisionsBetweenClients();
 	}

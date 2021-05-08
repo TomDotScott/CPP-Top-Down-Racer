@@ -14,19 +14,32 @@ struct Client
 		m_position(),
 		m_angle(0.f)
 	{
-	};
+		m_checkPointTriggers[eCheckPoints::e_One] = false;
+		m_checkPointTriggers[eCheckPoints::e_Two] = false;
+		m_checkPointTriggers[eCheckPoints::e_Three] = false;
+		m_checkPointTriggers[eCheckPoints::e_Four] = false;
+		m_checkPointTriggers[eCheckPoints::e_Five] = false;
+		m_checkPointTriggers[eCheckPoints::e_Six] = false;
+	}
 
 	Client(sf::TcpSocket* socketPtr, const sf::Vector2f& position, const float angle) :
 		m_socket(socketPtr),
 		m_position(position),
 		m_angle(angle)
 	{
+		m_checkPointTriggers[eCheckPoints::e_One] = false;
+		m_checkPointTriggers[eCheckPoints::e_Two] = false;
+		m_checkPointTriggers[eCheckPoints::e_Three] = false;
+		m_checkPointTriggers[eCheckPoints::e_Four] = false;
+		m_checkPointTriggers[eCheckPoints::e_Five] = false;
+		m_checkPointTriggers[eCheckPoints::e_Six] = false;
 	}
 
 	// TODO: Swap to unique_ptr - ups are 'Owning Handles'
 	sf::TcpSocket* m_socket;
 	sf::Vector2f m_position;
 	float m_angle;
+	std::unordered_map<eCheckPoints, bool> m_checkPointTriggers;
 };
 
 // TODO: Use UDP for connecting, TCP for everything else
@@ -55,14 +68,14 @@ private:
 
 	const std::array<sf::Color, globals::k_playerAmount> m_carColours{
 		sf::Color(255, 0, 0),
-		sf::Color(0, 0, 255),
+		//sf::Color(0, 0, 255),
 		/*sf::Color(0, 255, 0),
 		sf::Color(255, 255, 0)*/
 	};
 
 	const std::array<sf::Vector2f, globals::k_playerAmount> m_carStartingPositions{
 		sf::Vector2f(779.f, 558.f),
-		sf::Vector2f(779.f, 616.f),
+		//sf::Vector2f(779.f, 616.f),
 		/*sf::Vector2f(772.f, 558.f),
 		sf::Vector2f(722.f, 616.f)*/
 	};

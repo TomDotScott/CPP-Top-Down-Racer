@@ -140,14 +140,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Background.cpp" />
+    <ClCompile Include="Map.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="NMG ICA.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Shared Files\Data.h" />
-    <ClInclude Include="Background.h" />
+    <ClInclude Include="Map.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Player.h" />

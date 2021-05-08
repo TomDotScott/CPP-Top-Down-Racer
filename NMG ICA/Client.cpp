@@ -24,7 +24,7 @@ bool Client::Initialise(const unsigned short port)
 	{
 		return false;
 	}
-	
+
 	m_server = sf::IpAddress::getLocalAddress();
 
 	// Connect to the server
@@ -69,7 +69,7 @@ bool Client::Initialise(const unsigned short port)
 	{
 	case eDataPacketType::e_UserNameConfirmation:
 		std::cout << "Username confirmed, client connected" << std::endl;
-		
+
 		AddPlayer(m_userName);
 
 		m_players[m_userName].SetColour(
@@ -88,7 +88,7 @@ bool Client::Initialise(const unsigned short port)
 		);
 
 		m_players[m_userName].SetAngle(inDataPacket.m_angle);
-		
+
 		break;
 	case eDataPacketType::e_UserNameRejection:
 		std::cout << "The username is taken, try again" << std::endl;
@@ -97,24 +97,13 @@ bool Client::Initialise(const unsigned short port)
 	return true;
 }
 
-void Client::CheckCollisions()
+void Client::PassCheckPoint(const eCheckPoints cp)
 {
-	// Loop through clients and see if any of them overlap
-	for(auto& player : m_players)
-	{
-		// Don't check collisions with themselves...
-		if(player.first != m_userName)
-		{
-			auto playerGB = m_players[m_userName].GetGlobalBounds();
-			auto otherPlayerGB = player.second.GetGlobalBounds();
-			
-			if(playerGB.intersects(otherPlayerGB))
-			{
-				// Find how much they overlap
-				
-			}
-		}
-	}
+	std::cout << "I have passed the checkpoint: " << to_string(cp) << std::endl;
+
+	// Tell the server that they have passed a checkpoint
+	DataPacket checkPointPassedDataPacket(eDataPacketType::e_CheckPointPassed, m_userName, cp);
+	SendMessage(checkPointPassedDataPacket);
 }
 
 void Client::Update(const float deltaTime)
@@ -122,12 +111,15 @@ void Client::Update(const float deltaTime)
 	if (m_gameStarted)
 	{
 		m_players[m_userName].Update(deltaTime);
+		m_background.CheckCollisions(m_players[m_userName]);
 
-		for(auto& player : m_players)
+		const eCheckPoints checkPoint = m_background.CheckPlayerCheckPoints(m_players[m_userName]);
+
+		if (checkPoint != eCheckPoints::e_None)
 		{
-			m_background.CheckCollisions(player.second);
+			PassCheckPoint(checkPoint);
 		}
-		
+
 		// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
 		m_packetTimer += deltaTime;
 
@@ -137,7 +129,7 @@ void Client::Update(const float deltaTime)
 			m_packetTimer = 0.f;
 		}
 	}
-	
+
 	ReceiveMessage();
 	m_playerMoved = false;
 }
@@ -150,21 +142,21 @@ void Client::Render(sf::RenderWindow& window)
 			static_cast<float>(globals::k_screenWidth) / 2.f - m_text.getGlobalBounds().width / 2,
 			static_cast<float>(globals::k_screenHeight) / 2.f - m_text.getGlobalBounds().height
 		);
-		
+
 		window.draw(m_text);
-	}else
+	} else
 	{
 		m_background.Render(window);
-		
+
 		for (auto& player : m_players)
 		{
 			// Render username above the player's car
 			m_text.setString(player.first);
-			
+
 			m_text.setCharacterSize(15);
-			
+
 			const sf::Vector2f& playerPosition = player.second.GetPosition();
-			
+
 			m_text.setPosition(playerPosition.x - m_text.getGlobalBounds().width / 2, playerPosition.y - m_text.getGlobalBounds().height - 30);
 
 			window.draw(m_text);
@@ -197,7 +189,7 @@ bool Client::AddPlayer(const std::string& username)
 
 bool Client::RemovePlayer(const std::string& username)
 {
-	if(globals::is_value_in_map(m_players, username))
+	if (globals::is_value_in_map(m_players, username))
 	{
 		m_players.erase(username);
 		return true;
@@ -259,12 +251,12 @@ bool Client::ReceiveMessage()
 		std::cout << "The server told me that the game has started..." << std::endl;
 		m_gameStarted = true;
 		break;
-	case eDataPacketType::e_ClientDisconnected: 
+	case eDataPacketType::e_ClientDisconnected:
 		std::cout << "The server told me that the player: " << inData.m_userName << " disconnected..." << std::endl;
-		if(RemovePlayer(inData.m_userName))
+		if (RemovePlayer(inData.m_userName))
 		{
 			std::cout << "The disconnected player: " << inData.m_userName << " was removed successfully..." << std::endl;
-		}else
+		} else
 		{
 			std::cout << "There was an error trying to remove " << inData.m_userName << "\n\t They may have been removed already...." << std::endl;
 		}
@@ -275,6 +267,12 @@ bool Client::ReceiveMessage()
 		m_players[inData.m_userName].SetPosition({ inData.m_x, inData.m_y });
 
 		break;
+	case eDataPacketType::e_LapCompleted:
+		std::cout << "The server told me that I completed a lap!" << std::endl;
+
+		// TODO: Display total laps and all that jazz
+		break;
+		
 	default:;
 	}
 
@@ -287,17 +285,31 @@ bool Client::SendMessage(const eDataPacketType type)
 	// Push some data to the packet
 	const auto& playerPosition = m_players[m_userName].GetPosition();
 	sf::Packet outPacket;
-	
+
 	const DataPacket outDataPacket(
-		type, 
-		m_userName, 
-		playerPosition.x, 
-		playerPosition.y, 
+		type,
+		m_userName,
+		playerPosition.x,
+		playerPosition.y,
 		m_players[m_userName].GetAngle(),
 		m_players[m_userName].GetColour()
 	);
 
 	outPacket << outDataPacket;
+
+	if (m_socket.send(outPacket) != sf::Socket::Done)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool Client::SendMessage(DataPacket& dp)
+{
+	sf::Packet outPacket;
+	
+	outPacket << dp;
 
 	if (m_socket.send(outPacket) != sf::Socket::Done)
 	{

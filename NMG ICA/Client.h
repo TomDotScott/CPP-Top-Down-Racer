@@ -3,7 +3,7 @@
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "Background.h"
+#include "Map.h"
 #include "Player.h"
 #include "../Shared Files/Data.h"
 
@@ -30,21 +30,21 @@ private:
 	bool m_gameStarted;
 	
 	std::unordered_map<std::string, Player> m_players;
-	
+
 	sf::Texture m_carTexture;
-	Background m_background;
+	Map m_background;
 	sf::Text m_text;
 
 	bool Initialise(unsigned short port);
 
-	void CheckCollisions();
-	sf::Vector2f CalculateCollisionDepth(const sf::FloatRect& A, const sf::FloatRect& B);
+	void PassCheckPoint(eCheckPoints cp);
 	
 	bool AddPlayer(const std::string& username);
 	bool RemovePlayer(const std::string& username);
 	
 	bool ReceiveMessage();
 	bool SendMessage(eDataPacketType type);
+	bool SendMessage(DataPacket& dp);
 
 	Client(const std::string& username);
 };

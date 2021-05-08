@@ -141,13 +141,33 @@ void Server::CheckCollisionsBetweenClients()
 			{
 				float dx = client.second.m_position.x - otherClient.second.m_position.x;
 				float dy = client.second.m_position.y - otherClient.second.m_position.y;
+
+				bool collisionOccurred = false;
 				
-				if (dx * dx + dy * dy < 4 * 10.f * 17.f)
+				while (dx * dx + dy * dy < 4 * 10.f * 17.f)
 				{
-					std::cout << client.first << " is colliding with " << otherClient.first << std::endl;
+					collisionOccurred = true;
+					
+					client.second.m_position.x += dx / 10.f;
+					client.second.m_position.x += dy / 10.f;
+					otherClient.second.m_position.x -= dx / 10.f;
+					otherClient.second.m_position.x -= dy / 10.f;
+					dx = client.second.m_position.x - otherClient.second.m_position.x;
+					dy = client.second.m_position.y - otherClient.second.m_position.y;
+					
+					if (dx == 0 && dy == 0)
+						break;
 				}
 
-				std::cout << "No collision is happening" << std::endl;
+				// If a collision occurred and was resolved, update the clients
+				if(collisionOccurred)
+				{
+					DataPacket playerOneCollisionData(eDataPacketType::e_CollisionData, client.first, client.second.m_position, otherClient.first);
+					SendMessage(playerOneCollisionData, client.first);
+					
+					DataPacket playerTwoCollisionData(eDataPacketType::e_CollisionData, otherClient.first, otherClient.second.m_position, client.first);
+					SendMessage(playerTwoCollisionData, otherClient.first);
+				}
 			}
 		}
 	}
@@ -155,7 +175,12 @@ void Server::CheckCollisionsBetweenClients()
 
 bool Server::SendMessage(const DataPacket& dataToSend, const std::string& receiver)
 {
+	sf::Packet outPacket;
+	outPacket << dataToSend;
 
+	m_connectedClients[receiver].m_socket->send(outPacket);
+
+	return true;
 }
 
 void Server::Update(unsigned short port)

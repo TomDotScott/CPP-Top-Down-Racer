@@ -254,6 +254,12 @@ bool Client::ReceiveMessage()
 			std::cout << "There was an error trying to remove " << inData.m_userName << "\n\t They may have been removed already...." << std::endl;
 		}
 		break;
+	case eDataPacketType::e_CollisionData:
+		std::cout << "The server told me that player: " << inData.m_playerCollidedWith << " collided with me" << std::endl;
+
+		m_players[inData.m_userName].SetPosition({ inData.m_x, inData.m_y });
+
+		break;
 	default:;
 	}
 

@@ -9,7 +9,9 @@
 
 struct Client
 {
-	explicit Client(sf::TcpSocket* socketPtr) :
+	Client() = default;
+	
+	Client(sf::TcpSocket* socketPtr) :
 		m_socket(socketPtr),
 		m_position(0.f, 0.f),
 		m_angle(0.f)

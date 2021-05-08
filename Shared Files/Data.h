@@ -102,10 +102,10 @@ struct DataPacket
 
 inline sf::Packet operator<<(sf::Packet& packet, const DataPacket& dp)
 {
-	return packet << dp.m_type << dp.m_userName << dp.m_x << dp.m_y << dp.m_angle << dp.m_red << dp.m_green << dp.m_blue;
+	return packet << dp.m_type << dp.m_userName << dp.m_x << dp.m_y << dp.m_angle << dp.m_red << dp.m_green << dp.m_blue << dp.m_playerCollidedWith;
 }
 
 inline sf::Packet operator>>(sf::Packet& packet, DataPacket& dp)
 {
-	return packet >> dp.m_type >> dp.m_userName >> dp.m_x >> dp.m_y >> dp.m_angle >> dp.m_red >> dp.m_green >> dp.m_blue;
+	return packet >> dp.m_type >> dp.m_userName >> dp.m_x >> dp.m_y >> dp.m_angle >> dp.m_red >> dp.m_green >> dp.m_blue >> dp.m_playerCollidedWith;
 }

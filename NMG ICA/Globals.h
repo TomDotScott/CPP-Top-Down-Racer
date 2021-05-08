@@ -3,7 +3,7 @@
 
 namespace globals
 {
-	constexpr int k_playerAmount = 1;
+	constexpr int k_playerAmount = 2;
 	constexpr float k_carTrackSpeed = 150.f;
 	constexpr float k_carGrassSpeed = 50.f;
 

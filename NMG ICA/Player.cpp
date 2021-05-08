@@ -12,7 +12,7 @@ Player::Player(const sf::Texture& textureData) :
 }
 
 bool Player::Input(const float deltaTime)
-{
+{	
 	bool hasPlayerMoved = false;
 	
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -121,4 +121,9 @@ void Player::ChangeAngle(const float deltaAngle)
 void Player::SetSpeed(const float speed)
 {
 	m_speed = speed;
+}
+
+sf::FloatRect Player::GetGlobalBounds() const
+{
+	return m_sprite.getGlobalBounds();
 }

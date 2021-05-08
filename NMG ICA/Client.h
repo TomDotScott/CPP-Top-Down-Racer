@@ -5,6 +5,7 @@
 
 #include "Background.h"
 #include "Player.h"
+#include "../Shared Files/Data.h"
 
 
 class Client
@@ -36,11 +37,14 @@ private:
 
 	bool Initialise(unsigned short port);
 
+	void CheckCollisions();
+	sf::Vector2f CalculateCollisionDepth(const sf::FloatRect& A, const sf::FloatRect& B);
+	
 	bool AddPlayer(const std::string& username);
 	bool RemovePlayer(const std::string& username);
 	
 	bool ReceiveMessage();
-	bool SendMessage();
+	bool SendMessage(eDataPacketType type);
 
 	Client(const std::string& username);
 };

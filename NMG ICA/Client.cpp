@@ -4,8 +4,6 @@
 #include <thread>
 #include <utility>
 
-#include "../Shared Files/Data.h"
-
 std::unique_ptr<Client> Client::CreateClient(const std::string& username, const unsigned short port)
 {
 	std::unique_ptr<Client> newClient(new Client(username));
@@ -91,6 +89,25 @@ bool Client::Initialise(const unsigned short port)
 	return true;
 }
 
+void Client::CheckCollisions()
+{
+	// Loop through clients and see if any of them overlap
+	for(auto& player : m_players)
+	{
+		// Don't check collisions with themselves...
+		if(player.first != m_userName)
+		{
+			auto playerGB = m_players[m_userName].GetGlobalBounds();
+			auto otherPlayerGB = player.second.GetGlobalBounds();
+			
+			if(playerGB.intersects(otherPlayerGB))
+			{
+				// Find how much they overlap
+				
+			}
+		}
+	}
+}
 
 void Client::Update(const float deltaTime)
 {
@@ -108,7 +125,7 @@ void Client::Update(const float deltaTime)
 
 		if (m_packetTimer >= m_packetDelay)
 		{
-			SendMessage();
+			SendMessage(eDataPacketType::e_UpdatePosition);
 			m_packetTimer = 0.f;
 		}
 	}
@@ -244,15 +261,20 @@ bool Client::ReceiveMessage()
 	return true;
 }
 
-bool Client::SendMessage()
+bool Client::SendMessage(const eDataPacketType type)
 {
 	// Push some data to the packet
 	const auto& playerPosition = m_players[m_userName].GetPosition();
-	const auto playerAngle = m_players[m_userName].GetAngle();
-	const auto playerColour = m_players[m_userName].GetColour();
-
 	sf::Packet outPacket;
-	const DataPacket outDataPacket(eDataPacketType::e_UpdatePosition, m_userName, playerColour, playerPosition.x, playerPosition.y, playerAngle);
+	
+	const DataPacket outDataPacket(
+		type, 
+		m_userName, 
+		playerPosition.x, 
+		playerPosition.y, 
+		m_players[m_userName].GetAngle(),
+		m_players[m_userName].GetColour()
+	);
 
 	outPacket << outDataPacket;
 

@@ -26,7 +26,7 @@ Server::~Server()
 {
 	for (auto& connectedClient : m_connectedClients)
 	{
-		delete connectedClient.second;
+		delete connectedClient.second.m_socket;
 	}
 }
 
@@ -50,13 +50,13 @@ void Server::CheckForNewClients()
 	if (m_socketSelector.isReady(m_listener))
 	{
 		// Create a new connection
-		auto* client = new sf::TcpSocket();
-		if (m_listener.accept(*client) == sf::Socket::Done)
+		auto* newTcpSocket = new sf::TcpSocket();
+		if (m_listener.accept(*newTcpSocket) == sf::Socket::Done)
 		{
 			sf::Packet inPacket;
 			DataPacket inData;
 
-			if (client->receive(inPacket) == sf::Socket::Done)
+			if (newTcpSocket->receive(inPacket) == sf::Socket::Done)
 			{
 				inPacket >> inData;
 			}
@@ -78,15 +78,17 @@ void Server::CheckForNewClients()
 						std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
 
 						// Add the new client to the selector - this means we can update all clients
-						m_socketSelector.add(*client);
+						m_socketSelector.add(*newTcpSocket);
 
 						std::cout << inData.m_userName << " has connected to the server" << std::endl;
+
+						Client client(newTcpSocket);
 
 						m_connectedClients.insert(std::make_pair(inData.m_userName, client));
 
 						outPacket << outData;
 
-						client->send(outPacket);
+						newTcpSocket->send(outPacket);
 
 						outPacket.clear();
 
@@ -95,7 +97,7 @@ void Server::CheckForNewClients()
 
 						outPacket << updateClientDataPacket;
 
-						SendMessage(updateClientDataPacket, *client);
+						BroadcastMessage(updateClientDataPacket, *newTcpSocket);
 					} else
 					{
 						std::cout << "A CLIENT WITH THE USERNAME: " << inData.m_userName << " ALREADY EXISTS..." << std::endl;
@@ -104,9 +106,9 @@ void Server::CheckForNewClients()
 						DataPacket usernameRejectionData(eDataPacketType::e_UserNameRejection, globals::k_reservedServerUsername);
 						usernameRejectionPkt << usernameRejectionData;
 
-						client->send(usernameRejectionPkt);
+						newTcpSocket->send(usernameRejectionPkt);
 
-						delete client;
+						delete newTcpSocket;
 					}
 				}
 			} else
@@ -117,16 +119,43 @@ void Server::CheckForNewClients()
 				const DataPacket maximumClientMessage(eDataPacketType::e_MaxPlayers, "SERVER");
 				maxClientMessagePkt << maximumClientMessage;
 
-				client->send(maxClientMessagePkt);
+				newTcpSocket->send(maxClientMessagePkt);
 
-				delete client;
+				delete newTcpSocket;
 			}
 		} else
 		{
 			std::cout << "A client had an error connecting..." << std::endl;
-			delete client;
+			delete newTcpSocket;
 		}
 	}
+}
+
+void Server::CheckCollisionsBetweenClients()
+{
+	for (auto& client : m_connectedClients)
+	{
+		for (auto& otherClient : m_connectedClients)
+		{
+			if (client.first != otherClient.first)
+			{
+				float dx = client.second.m_position.x - otherClient.second.m_position.x;
+				float dy = client.second.m_position.y - otherClient.second.m_position.y;
+				
+				if (dx * dx + dy * dy < 4 * 10.f * 17.f)
+				{
+					std::cout << client.first << " is colliding with " << otherClient.first << std::endl;
+				}
+
+				std::cout << "No collision is happening" << std::endl;
+			}
+		}
+	}
+}
+
+bool Server::SendMessage(const DataPacket& dataToSend, const std::string& receiver)
+{
+
 }
 
 void Server::Update(unsigned short port)
@@ -143,17 +172,17 @@ void Server::Update(unsigned short port)
 				std::cout << m_maxClients << " have connected, starting the game..." << std::endl;
 
 				const DataPacket outDataPacket(eDataPacketType::e_StartGame, globals::k_reservedServerUsername);
-				SendMessage(outDataPacket);
+				BroadcastMessage(outDataPacket);
 			}
 		}
 
 		// Loop through each client and use our new, fancy, socket selector
 		for (auto& client : m_connectedClients)
 		{
-			if (client.second && m_socketSelector.isReady(*client.second))
+			if (client.second.m_socket && m_socketSelector.isReady(*client.second.m_socket))
 			{
 				sf::Packet inPacket;
-				const auto clientStatus = client.second->receive(inPacket);
+				const auto clientStatus = client.second.m_socket->receive(inPacket);
 
 				if (clientStatus == sf::Socket::Done)
 				{
@@ -163,26 +192,29 @@ void Server::Update(unsigned short port)
 
 					if (inData.m_type == eDataPacketType::e_UpdatePosition)
 					{
-						SendMessage(inData, *client.second);
+						client.second.m_position = { inData.m_x, inData.m_y };
+						client.second.m_angle = inData.m_angle;
+
+						BroadcastMessage(inData, *client.second.m_socket);
 					}
 				}
 
 				if (clientStatus == sf::Socket::Disconnected)
 				{
 					std::string disconnectedClientUsername = client.first;
-					
+
 					std::cout << "PLAYER WITH THE USERNAME: " << disconnectedClientUsername << " DISCONNECTED FROM THE SERVER" << std::endl;
 
-					m_socketSelector.remove(*client.second);
+					m_socketSelector.remove(*client.second.m_socket);
 
-					client.second->disconnect();
-					
+					client.second.m_socket->disconnect();
+
 					// Delete the allocated memory
-					delete client.second;
+					delete client.second.m_socket;
 
 					// Remove from the map
 					m_connectedClients.erase(client.first);
-					
+
 					// See if it was the last person to leave
 					if (m_connectedClients.empty())
 					{
@@ -191,18 +223,21 @@ void Server::Update(unsigned short port)
 
 					// Tell the other clients that a client disconnected
 					sf::Packet clientDisconnectedPkt;
-					
+
 					DataPacket clientDisconnectedData(eDataPacketType::e_ClientDisconnected, disconnectedClientUsername);
 
 					clientDisconnectedPkt << clientDisconnectedData;
-					SendMessage(clientDisconnectedData);
+					BroadcastMessage(clientDisconnectedData);
 				}
 			}
 		}
+
+		// Check collisions and update the clients accordingly...
+		CheckCollisionsBetweenClients();
 	}
 }
 
-bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
+bool Server::BroadcastMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 {
 	sf::Packet sendPacket;
 	sendPacket << dataToSend;
@@ -215,7 +250,7 @@ bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 		{
 			if (dataToSend.m_userName != globals::k_reservedServerUsername)
 			{
-				client.second->send(sendPacket);
+				client.second.m_socket->send(sendPacket);
 			}
 		}
 	}
@@ -223,7 +258,7 @@ bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 	return true;
 }
 
-bool Server::SendMessage(const DataPacket& dataToSend)
+bool Server::BroadcastMessage(const DataPacket& dataToSend)
 {
 	sf::Packet sendPacket;
 	sendPacket << dataToSend;
@@ -231,7 +266,7 @@ bool Server::SendMessage(const DataPacket& dataToSend)
 	// update the other connected clients
 	for (auto& client : m_connectedClients)
 	{
-		client.second->send(sendPacket);
+		client.second.m_socket->send(sendPacket);
 	}
 	return true;
 }

@@ -16,7 +16,7 @@ enum class eDataPacketType : uint8_t
 	e_MaxPlayers,
 	e_StartGame,
 	e_UpdatePosition,
-	e_CollisionOccurred
+	e_CollisionData
 };
 
 // Sending enums via sf::Packet https://en.sfml-dev.org/forums/index.php?topic=17075.0

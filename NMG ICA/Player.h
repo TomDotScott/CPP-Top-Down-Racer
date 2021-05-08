@@ -27,6 +27,8 @@ public:
 	void  ChangeAngle(const float deltaAngle);
 	void SetSpeed(const float speed);
 
+	sf::FloatRect GetGlobalBounds() const;
+
 private:
 	sf::Sprite m_sprite;
 

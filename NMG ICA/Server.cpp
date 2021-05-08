@@ -65,7 +65,7 @@ void Server::CheckForNewClients()
 			{
 				if (inData.m_type == eDataPacketType::e_FirstConnection)
 				{
-					if (!globals::is_value_in_map(m_connectedClients, inData.m_userName))
+					if (!globals::is_value_in_map(m_connectedClients, inData.m_userName) && inData.m_userName != globals::k_reservedServerUsername)
 					{
 						// Find the next available colour for the players
 						sf::Color colour = m_carColours[m_connectedClients.size()];
@@ -73,7 +73,7 @@ void Server::CheckForNewClients()
 						// To tell the client that they are successful
 						sf::Packet outPacket;
 
-						DataPacket outData(eDataPacketType::e_UserNameConfirmation, "SERVER", colour);
+						DataPacket outData(eDataPacketType::e_UserNameConfirmation, globals::k_reservedServerUsername, 0.f, 0.f, 0.f, colour);
 
 						std::cout << "The next available colour " << static_cast<int>(colour.r) << " " << static_cast<int>(colour.g) << " " << static_cast<int>(colour.b) << std::endl;
 
@@ -91,7 +91,7 @@ void Server::CheckForNewClients()
 						outPacket.clear();
 
 						// Tell the other clients that a new client has connected
-						const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, "SERVER", colour);
+						const DataPacket updateClientDataPacket(eDataPacketType::e_NewClient, globals::k_reservedServerUsername, colour);
 
 						outPacket << updateClientDataPacket;
 
@@ -101,7 +101,7 @@ void Server::CheckForNewClients()
 						std::cout << "A CLIENT WITH THE USERNAME: " << inData.m_userName << " ALREADY EXISTS..." << std::endl;
 
 						sf::Packet usernameRejectionPkt;
-						DataPacket usernameRejectionData(eDataPacketType::e_UserNameRejection, "SERVER");
+						DataPacket usernameRejectionData(eDataPacketType::e_UserNameRejection, globals::k_reservedServerUsername);
 						usernameRejectionPkt << usernameRejectionData;
 
 						client->send(usernameRejectionPkt);
@@ -142,7 +142,7 @@ void Server::Update(unsigned short port)
 				m_gameInProgress = true;
 				std::cout << m_maxClients << " have connected, starting the game..." << std::endl;
 
-				const DataPacket outDataPacket(eDataPacketType::e_StartGame, "SERVER");
+				const DataPacket outDataPacket(eDataPacketType::e_StartGame, globals::k_reservedServerUsername);
 				SendMessage(outDataPacket);
 			}
 		}
@@ -213,7 +213,7 @@ bool Server::SendMessage(const DataPacket& dataToSend, sf::TcpSocket& sender)
 		// Make sure not to send the client their own data!
 		if (client.first != dataToSend.m_userName)
 		{
-			if (dataToSend.m_userName != "SERVER")
+			if (dataToSend.m_userName != globals::k_reservedServerUsername)
 			{
 				client.second->send(sendPacket);
 			}

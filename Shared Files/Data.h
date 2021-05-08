@@ -15,7 +15,8 @@ enum class eDataPacketType : uint8_t
 	// Used to notify clients if the server is full
 	e_MaxPlayers,
 	e_StartGame,
-	e_UpdatePosition
+	e_UpdatePosition,
+	e_CollisionOccurred
 };
 
 // Sending enums via sf::Packet https://en.sfml-dev.org/forums/index.php?topic=17075.0
@@ -50,15 +51,40 @@ struct DataPacket
 	{
 	}
 
-	DataPacket(const eDataPacketType type, std::string userName, const sf::Color& colour = sf::Color::Red, const float x = 0.f, const float y = 0.f, const float angle = 0.f) :
+	DataPacket(const eDataPacketType type, const std::string& userName, const float x = 0.f, const float y = 0.f, const float angle = 0.f, const sf::Color& colour = sf::Color::Red) :
 		m_type(type),
-		m_userName(std::move(userName)),
+		m_userName(userName),
 		m_x(x),
 		m_y(y),
 		m_angle(angle),
 		m_red(static_cast<uint8_t>(colour.r)),
 		m_green(static_cast<uint8_t>(colour.g)),
 		m_blue(static_cast<uint8_t>(colour.b))
+	{
+	}
+
+	DataPacket(const eDataPacketType type, const std::string& userName, const sf::Color& colour) :
+		m_type(type),
+		m_userName(userName),
+		m_x(0.f),
+		m_y(0.f),
+		m_angle(0.f),
+		m_red(static_cast<uint8_t>(colour.r)),
+		m_green(static_cast<uint8_t>(colour.g)),
+		m_blue(static_cast<uint8_t>(colour.b))
+	{
+	}
+
+	DataPacket(const eDataPacketType type, const std::string& username, const sf::Vector2f& position, const std::string& playerCollidedWith) :
+		m_type(type),
+		m_userName(username),
+		m_x(position.x),
+		m_y(position.y),
+		m_angle(0.f),
+		m_red(0),
+		m_green(0),
+		m_blue(0),
+		m_playerCollidedWith(playerCollidedWith)
 	{
 	}
 
@@ -70,6 +96,8 @@ struct DataPacket
 	uint8_t m_red;
 	uint8_t m_green;
 	uint8_t m_blue;
+	std::string m_playerCollidedWith;
+
 };
 
 inline sf::Packet operator<<(sf::Packet& packet, const DataPacket& dp)

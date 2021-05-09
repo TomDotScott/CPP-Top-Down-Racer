@@ -12,8 +12,6 @@ Map::Map()
 	m_texture.loadFromImage(m_image);
 
 	const sf::Vector2f checkPointColliderSize{ globals::k_checkPointWidth, globals::k_checkPointHeight };
-
-	
 }
 
 void Map::CheckCollisions(Player& player) const

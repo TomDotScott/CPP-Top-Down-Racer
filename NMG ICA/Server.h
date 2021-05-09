@@ -16,14 +16,21 @@ struct Client
 	~Client();
 	
 	bool AllCheckPointsPassed();
+	void ResetCheckPoints();
+	int HighestCheckPointPassed();
+	
+	static bool CompareByLap(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
+	static bool CompareByCheckPoints(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
+	static bool CompareByDistance(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
 	
 	std::string m_username;
-	// TODO: Swap to unique_ptr - ups are 'Owning Handles'
 	sf::TcpSocket* m_socket;
 	sf::Vector2f m_position;
 	float m_angle;
+	
 	// Switched to an array of size 6 - map isn't cache friendly and it's heap allocated!
 	std::array<bool, globals::k_numCheckPoints> m_checkPointsPassed;
+	int m_lapsCompleted;
 };
 
 // TODO: Use UDP for connecting, TCP for everything else
@@ -48,14 +55,13 @@ private:
 	// Moved from Unordered_Map to vector... The intent is made clearer as I am iterating over it
 	std::vector<std::unique_ptr<Client>> m_connectedClients;
 
-	std::array<sf::FloatRect, globals::k_numCheckPoints> m_levelCheckpoints;
-
 	bool m_gameInProgress;
 
 	Server();
 	bool Initialise(unsigned short port);
 	void CheckForNewClients();
 	void CheckCollisionsBetweenClients();
+	void WorkOutTrackPlacements();
 	int FindClientIndex(const std::string& username) const;
 	bool IsUsernameTaken(const std::string& username) const;
 	void CheckIfClientHasPassedCheckPoint(Client& client);

@@ -9,16 +9,25 @@ namespace
 {
 	const std::array<sf::Color, globals::k_playerAmount> CAR_COLOURS{
 		sf::Color(255, 0, 0),
-		//sf::Color(0, 0, 255),
+		sf::Color(0, 0, 255),
 		/*sf::Color(0, 255, 0),
 		sf::Color(255, 255, 0)*/
 	};
 
 	const std::array<sf::Vector2f, globals::k_playerAmount> STARTING_POSITIONS{
 		sf::Vector2f(779.f, 558.f),
-		//sf::Vector2f(779.f, 616.f),
+		sf::Vector2f(779.f, 616.f),
 		/*sf::Vector2f(772.f, 558.f),
 		sf::Vector2f(722.f, 616.f)*/
+	};
+
+	const std::array<sf::FloatRect, globals::k_numCheckPoints> LEVEL_CHECKPOINTS{
+		sf::FloatRect({ 803.f, 523.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({514.f, 11.f}, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 382.f, 313.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 167.f, 37.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 132.f, 597.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 434.f, 489.f }, globals::k_checkPointColliderSize)
 	};
 }
 
@@ -26,7 +35,8 @@ Client::Client(const sf::Vector2f& position, const float angle) :
 	m_socket(new sf::TcpSocket()),
 	m_position(position),
 	m_angle(angle),
-	m_checkPointsPassed()
+	m_checkPointsPassed(),
+	m_lapsCompleted(0)
 {
 	for (int i = 0; i < globals::k_numCheckPoints; ++i)
 	{
@@ -53,6 +63,72 @@ bool Client::AllCheckPointsPassed()
 	return passedCheckPoints == globals::k_numCheckPoints;
 }
 
+void Client::ResetCheckPoints()
+{
+	for (auto& point : m_checkPointsPassed)
+	{
+		point = false;
+	}
+}
+
+int Client::HighestCheckPointPassed()
+{
+	for (int i = globals::k_numCheckPoints - 1; i <= 0; ++i)
+	{
+		if (m_checkPointsPassed[i])
+		{
+			return i;
+		}
+	}
+	return 0;
+}
+
+bool Client::CompareByLap(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
+{
+	return a->m_lapsCompleted > b->m_lapsCompleted;
+}
+
+bool Client::CompareByCheckPoints(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
+{
+	// Only compare checkpoints if the laps are the same
+	if (a->m_lapsCompleted == b->m_lapsCompleted)
+	{
+		// Find the index of the highest lap completed
+		const int aHighestCheckPoint = a->HighestCheckPointPassed();
+		const int bHighestCheckPoint = b->HighestCheckPointPassed();
+		return aHighestCheckPoint > bHighestCheckPoint;
+	}
+	return false;
+}
+
+bool Client::CompareByDistance(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
+{
+	if (a->m_lapsCompleted == b->m_lapsCompleted && a->HighestCheckPointPassed() == b->HighestCheckPointPassed())
+	{
+		// Calculate the Distance to the next checkpoint
+		const int highestCheckPoint = a->HighestCheckPointPassed();
+
+		sf::Vector2f nextCheckpointPosition;
+
+		if (highestCheckPoint == 5)
+			nextCheckpointPosition = sf::Vector2f(LEVEL_CHECKPOINTS[highestCheckPoint + 1].left, LEVEL_CHECKPOINTS[highestCheckPoint].top);
+		else
+			nextCheckpointPosition = sf::Vector2f(LEVEL_CHECKPOINTS[0].left, LEVEL_CHECKPOINTS[0].top);
+
+		// Find the distance to the next checkpoint
+		sf::Vector2f aC = nextCheckpointPosition - a->m_position;
+		sf::Vector2f bC = nextCheckpointPosition - b->m_position;
+
+		// Find the magnitude of the vectors
+		const float magAC = globals::sqr_magnitude(aC);
+		const float magBC = globals::sqr_magnitude(bC);
+
+		return magAC > magBC;
+
+	}
+	return false;
+}
+
 std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
 {
 	std::unique_ptr<Server> newServer(new Server());
@@ -67,14 +143,6 @@ std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
 Server::Server() :
 	m_gameInProgress(false)
 {
-	const sf::Vector2f checkPointColliderSize = { globals::k_checkPointWidth, globals::k_checkPointHeight };
-
-	m_levelCheckpoints[0] = { sf::FloatRect({ 803.f, 523.f }, checkPointColliderSize) };
-	m_levelCheckpoints[1] = { sf::FloatRect({514.f, 11.f}, checkPointColliderSize) };
-	m_levelCheckpoints[2] = { sf::FloatRect({ 382.f, 313.f }, checkPointColliderSize) };
-	m_levelCheckpoints[3] = { sf::FloatRect({ 167.f, 37.f }, checkPointColliderSize) };
-	m_levelCheckpoints[4] = { sf::FloatRect({ 132.f, 597.f }, checkPointColliderSize) };
-	m_levelCheckpoints[5] = { sf::FloatRect({ 434.f, 489.f }, checkPointColliderSize) };
 }
 
 bool Server::Initialise(const unsigned short port)
@@ -139,7 +207,7 @@ void Server::CheckForNewClients()
 						std::cout << inData.m_userName << " has connected to the server" << std::endl;
 
 						newClient->m_username = inData.m_userName;
-						
+
 						m_connectedClients.emplace_back(newClient);
 
 						outPacket << outData;
@@ -234,12 +302,52 @@ void Server::CheckCollisionsBetweenClients()
 	}
 }
 
+void Server::WorkOutTrackPlacements()
+{
+	// Find out the previous positions
+	std::vector<std::string> previousPositions;
+
+	for(const auto& client : m_connectedClients)
+	{
+		previousPositions.emplace_back(client->m_username);
+	}
+	
+	// STEP 1 - CHECK THE LAPS OF THE PLAYERS
+	std::sort(m_connectedClients.begin(), m_connectedClients.end(), Client::CompareByLap);
+
+	// STEP 2 - CHECK WHICH CHECKPOINTS THEY HAVE PASSED
+	std::sort(m_connectedClients.begin(), m_connectedClients.end(), Client::CompareByCheckPoints);
+
+	// STEP 3 - CHECK DISTANCE BETWEEN THEM AND THE NEXT CHECKPOINT
+	std::sort(m_connectedClients.begin(), m_connectedClients.end(), Client::CompareByDistance);
+
+	// STEP 5 - SEE IF THE POSITIONS HAVE CHANGED
+	bool positionsChanged = false;
+	for(int i = 0; i < previousPositions.size(); ++i)
+	{
+		if(m_connectedClients[i]->m_username != previousPositions[i])
+		{
+			positionsChanged = true;
+		}
+	}
+
+	if (positionsChanged)
+	{
+		// STEP 4 - TELL THE CLIENTS WHICH PLACE THEY ARE IN
+		for (int i = 0; i < m_connectedClients.size(); ++i)
+		{
+			std::cout << "\tPosition " << i + 1 << " : " << m_connectedClients[i]->m_username << std::endl;
+		}
+	}
+
+}
+
 int Server::FindClientIndex(const std::string& username) const
 {
 	int index{ 0 };
 	for (const auto& client : m_connectedClients)
 	{
-		if(client->m_username == username)
+		if (client->m_username == username)
 		{
 			return index;
 		}
@@ -273,20 +381,39 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 	// See if the player has overlapped the checkpoints
 	for (int i = 0; i < globals::k_numCheckPoints; ++i)
 	{
-		if (m_levelCheckpoints[i].intersects(clientRect.getGlobalBounds()))
+		if (LEVEL_CHECKPOINTS[i].intersects(clientRect.getGlobalBounds()))
 		{
-			client.m_checkPointsPassed[i] = true;
+			if (i == 0)
+			{
+				if (client.m_lapsCompleted == 0 && client.m_checkPointsPassed[globals::k_numCheckPoints - 1])
+				{
+					client.m_checkPointsPassed[0] = true;
+				}
+			} else
+			{
+				client.m_checkPointsPassed[i] = true;
 
-			std::cout << "Checkpoint number: " << i << " has been passed" << std::endl;
+				std::cout << "Checkpoint number: " << i << " has been passed" << std::endl;
+			}
 
 			// See if all the checkpoints have been passed
 			if (client.AllCheckPointsPassed())
 			{
 				std::cout << client.m_username << " has completed a lap!" << std::endl;
+
+				// Tell the client that they have completed a lap
+				DataPacket lapCompletedDataPacket(eDataPacketType::e_LapCompleted, globals::k_reservedServerUsername);
+				SendMessage(lapCompletedDataPacket, client.m_username);
+
+				client.m_lapsCompleted++;
+				if (client.m_lapsCompleted == globals::k_totalLaps)
+				{
+					std::cout << client.m_username << " completed the race!" << std::endl;
+					client.ResetCheckPoints();
+				}
 			}
 		}
 	}
-
 }
 
 bool Server::SendMessage(const DataPacket& dataToSend, const std::string& receiver)
@@ -340,6 +467,9 @@ void Server::Update(unsigned short port)
 						BroadcastMessage(inData, *client->m_socket);
 
 						CheckIfClientHasPassedCheckPoint(*client);
+
+						WorkOutTrackPlacements();
+
 						break;
 					default:
 						break;
@@ -358,7 +488,7 @@ void Server::Update(unsigned short port)
 
 					// Remove from the vector
 					int clientIndex = FindClientIndex(client->m_username);
-					
+
 					m_connectedClients.erase(m_connectedClients.begin() + clientIndex);
 
 					// See if it was the last person to leave
@@ -412,7 +542,7 @@ bool Server::BroadcastMessage(const DataPacket& dataToSend) const
 	// update the other connected clients
 	for (const auto& client : m_connectedClients)
 	{
-		if(client->m_socket->send(sendPacket) != sf::Socket::Done)
+		if (client->m_socket->send(sendPacket) != sf::Socket::Done)
 		{
 			std::cout << "Error sending message to " << client->m_username << std::endl;
 		}

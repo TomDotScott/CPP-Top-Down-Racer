@@ -17,7 +17,8 @@ enum class eDataPacketType : uint8_t
 	e_StartGame,
 	e_UpdatePosition,
 	e_CollisionData,
-	e_LapCompleted
+	e_LapCompleted,
+	e_Overtaken
 };
 
 // Sending enums via sf::Packet https://en.sfml-dev.org/forums/index.php?topic=17075.0
@@ -89,6 +90,19 @@ struct DataPacket
 	{
 	}
 
+	DataPacket(const eDataPacketType type, const std::string& username, int positionInRace) :
+		m_type(type),
+		m_userName(username),
+		m_x(0.f),
+		m_y(0.f),
+		m_angle(0.f),
+		m_red(0),
+		m_green(0),
+		m_blue(0),
+		m_positionInRace(positionInRace)
+	{
+	}
+
 	eDataPacketType m_type;
 	std::string m_userName;
 	float m_x;
@@ -97,15 +111,16 @@ struct DataPacket
 	uint8_t m_red;
 	uint8_t m_green;
 	uint8_t m_blue;
+	int m_positionInRace;
 	std::string m_playerCollidedWith;
 };
 
 inline sf::Packet operator<<(sf::Packet& packet, const DataPacket& dp)
 {
-	return packet << dp.m_type << dp.m_userName << dp.m_x << dp.m_y << dp.m_angle << dp.m_red << dp.m_green << dp.m_blue << dp.m_playerCollidedWith;
+	return packet << dp.m_type << dp.m_userName << dp.m_x << dp.m_y << dp.m_angle << dp.m_red << dp.m_green << dp.m_blue << dp.m_positionInRace << dp.m_playerCollidedWith;
 }
 
 inline sf::Packet operator>>(sf::Packet& packet, DataPacket& dp)
 {
-	return packet >> dp.m_type >> dp.m_userName >> dp.m_x >> dp.m_y >> dp.m_angle >> dp.m_red >> dp.m_green >> dp.m_blue >> dp.m_playerCollidedWith;
+	return packet >> dp.m_type >> dp.m_userName >> dp.m_x >> dp.m_y >> dp.m_angle >> dp.m_red >> dp.m_green >> dp.m_blue >> dp.m_positionInRace >> dp.m_playerCollidedWith;
 }

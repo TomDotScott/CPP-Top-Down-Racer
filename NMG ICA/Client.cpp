@@ -148,10 +148,14 @@ void Client::Render(sf::RenderWindow& window)
 			player.second.Render(window);
 		}
 
-		m_text.setString("Laps: " + std::to_string(m_lapsCompleted + 1) + " / 3");
+		m_text.setString("Laps: " + std::to_string(m_lapsCompleted + 1) + " / " + std::to_string(globals::k_totalLaps));
 
 		m_text.setCharacterSize(30);
 		m_text.setPosition(730.f, 25.f);
+		window.draw(m_text);
+
+		m_text.setString("Pos: " + std::to_string(m_positionInRace) + " / " + std::to_string(m_players.size()));
+		m_text.setPosition(730.f, 75.f);
 		window.draw(m_text);
 	}
 }
@@ -257,12 +261,14 @@ bool Client::ReceiveMessage()
 		break;
 	case eDataPacketType::e_LapCompleted:
 		std::cout << "The server told me that I completed a lap!" << std::endl;
-		
+
 		m_lapsCompleted++;
-
-		
 		break;
+	case eDataPacketType::e_Overtaken:
+		std::cout << "The server updated me on my position in the race!" << std::endl;
 
+		m_positionInRace = inData.m_positionInRace;
+		break;
 	default:
 		break;
 	}
@@ -316,7 +322,8 @@ Client::Client(const std::string& username) :
 	m_packetTimer(0.f),
 	m_playerMoved(false),
 	m_gameStarted(false),
-	m_lapsCompleted(0)
+	m_lapsCompleted(0),
+	m_positionInRace(0)
 {
 	m_text.setString("Waiting for other players\nto connect...");
 	m_text.setCharacterSize(60);

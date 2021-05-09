@@ -14,7 +14,7 @@ namespace globals
 	constexpr float k_carOriginX = 10.f;
 	constexpr float k_carOriginY = 17.f;
 
-	constexpr int k_totalLaps = 1;
+	constexpr int k_totalLaps = 3;
 	
 	constexpr int k_numCheckPoints = 6;
 	constexpr float k_checkPointWidth = 50.f;

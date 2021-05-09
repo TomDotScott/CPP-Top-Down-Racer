@@ -29,6 +29,7 @@ private:
 
 	bool m_gameStarted;
 	int m_lapsCompleted;
+	int m_positionInRace;
 
 	// Read up on when to use data structures
 	// TODO : Switch to a vector, it will make the code simpler

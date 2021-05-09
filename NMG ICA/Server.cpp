@@ -337,6 +337,8 @@ void Server::WorkOutTrackPlacements()
 		for (int i = 0; i < m_connectedClients.size(); ++i)
 		{
 			std::cout << "\tPosition " << i + 1 << " : " << m_connectedClients[i]->m_username << std::endl;
+			DataPacket overtakenDataPacket(eDataPacketType::e_Overtaken, globals::k_reservedServerUsername, i + 1);
+			SendMessage(overtakenDataPacket, m_connectedClients[i]->m_username);
 		}
 	}
 

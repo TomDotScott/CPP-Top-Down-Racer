@@ -28,7 +28,9 @@ private:
 	bool m_playerMoved;
 
 	bool m_gameStarted;
-	
+
+	// Read up on when to use data structures
+	// TODO : Switch to a vector, it will make the code simpler
 	std::unordered_map<std::string, Player> m_players;
 
 	sf::Texture m_carTexture;
@@ -37,8 +39,6 @@ private:
 
 	bool Initialise(unsigned short port);
 
-	void PassCheckPoint(eCheckPoints cp);
-	
 	bool AddPlayer(const std::string& username);
 	bool RemovePlayer(const std::string& username);
 	

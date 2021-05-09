@@ -97,28 +97,12 @@ bool Client::Initialise(const unsigned short port)
 	return true;
 }
 
-void Client::PassCheckPoint(const eCheckPoints cp)
-{
-	std::cout << "I have passed the checkpoint: " << to_string(cp) << std::endl;
-
-	// Tell the server that they have passed a checkpoint
-	DataPacket checkPointPassedDataPacket(eDataPacketType::e_CheckPointPassed, m_userName, cp);
-	SendMessage(checkPointPassedDataPacket);
-}
-
 void Client::Update(const float deltaTime)
 {
 	if (m_gameStarted)
 	{
 		m_players[m_userName].Update(deltaTime);
 		m_background.CheckCollisions(m_players[m_userName]);
-
-		const eCheckPoints checkPoint = m_background.CheckPlayerCheckPoints(m_players[m_userName]);
-
-		if (checkPoint != eCheckPoints::e_None)
-		{
-			PassCheckPoint(checkPoint);
-		}
 
 		// TODO: Make the packet timer responsive, so that different internet speeds are accounted for
 		m_packetTimer += deltaTime;
@@ -209,8 +193,6 @@ bool Client::ReceiveMessage()
 
 	inPacket >> inData;
 
-	// std::cout << "Received a packet from " << inData.m_userName << std::endl;
-
 	// See if the data is from a new client...
 	if (AddPlayer(inData.m_userName))
 	{
@@ -273,7 +255,8 @@ bool Client::ReceiveMessage()
 		// TODO: Display total laps and all that jazz
 		break;
 		
-	default:;
+	default:
+		break;
 	}
 
 

@@ -65,6 +65,7 @@ bool Client::AllCheckPointsPassed()
 
 void Client::ResetCheckPoints()
 {
+	std::cout << "Completed a lap, resetting the checkpoints" << std::endl;
 	for (auto& point : m_checkPointsPassed)
 	{
 		point = false;
@@ -394,8 +395,6 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 			} else
 			{
 				client.m_checkPointsPassed[i] = true;
-
-				std::cout << "Checkpoint number: " << i << " has been passed" << std::endl;
 			}
 
 			// See if all the checkpoints have been passed
@@ -408,10 +407,11 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 				SendMessage(lapCompletedDataPacket, client.m_username);
 
 				client.m_lapsCompleted++;
+				client.ResetCheckPoints();
+
 				if (client.m_lapsCompleted == globals::k_totalLaps)
 				{
 					std::cout << client.m_username << " completed the race!" << std::endl;
-					client.ResetCheckPoints();
 				}
 			}
 		}

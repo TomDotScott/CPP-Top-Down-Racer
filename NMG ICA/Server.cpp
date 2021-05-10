@@ -23,11 +23,16 @@ namespace
 
 	const std::array<sf::FloatRect, globals::k_numCheckPoints> LEVEL_CHECKPOINTS{
 		sf::FloatRect({ 803.f, 523.f }, globals::k_checkPointColliderSize),
-	sf::FloatRect({514.f, 11.f}, globals::k_checkPointColliderSize),
-	sf::FloatRect({ 382.f, 313.f }, globals::k_checkPointColliderSize),
+		sf::FloatRect({ 846.f, 373.f }, globals::k_checkPointColliderSize),
+		sf::FloatRect({ 681.f, 313.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({511.f, 11.f}, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 384.f, 313.f }, globals::k_checkPointColliderSize),
 	sf::FloatRect({ 167.f, 37.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 17.f, 400.f }, {globals::k_checkPointHeight, globals::k_checkPointWidth}),
 	sf::FloatRect({ 132.f, 597.f }, globals::k_checkPointColliderSize),
-	sf::FloatRect({ 434.f, 489.f }, globals::k_checkPointColliderSize)
+	sf::FloatRect({ 282.f, 584.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 434.f, 489.f }, globals::k_checkPointColliderSize),
+	sf::FloatRect({ 642.f, 508.f }, globals::k_checkPointColliderSize),
 	};
 }
 
@@ -36,9 +41,9 @@ Client::Client(const sf::Vector2f& position, const float angle) :
 	m_position(position),
 	m_angle(angle),
 	m_checkPointsPassed(),
+	m_nextAICheckpoint(0),
 	m_lapsCompleted(0),
-	m_raceCompleted(false),
-	m_nextAICheckpoint(0)
+	m_raceCompleted(false)
 {
 	for (int i = 0; i < globals::k_numCheckPoints; ++i)
 	{
@@ -372,11 +377,9 @@ void Server::WorkOutTrackPlacements()
 void Server::AIMovement(const float deltaTime, Client& client) const
 {
 	const sf::Vector2f target(
-		LEVEL_CHECKPOINTS[client.m_nextAICheckpoint].left,
-		LEVEL_CHECKPOINTS[client.m_nextAICheckpoint].top
+		LEVEL_CHECKPOINTS[client.m_nextAICheckpoint].left + globals::k_checkPointWidth / 2.f,
+		LEVEL_CHECKPOINTS[client.m_nextAICheckpoint].top + globals::k_checkPointHeight / 2.f
 	);
-
-	std::cout << "Moving to: " << target.x << " " << target.y << std::endl;
 
 	const float beta = client.m_angle - atan2(target.x - client.m_position.x, -target.y + client.m_position.y);
 
@@ -394,17 +397,13 @@ void Server::AIMovement(const float deltaTime, Client& client) const
 	sf::Vector2f direction = target - client.m_position;
 
 	if (globals::sqr_magnitude(direction) <
-		globals::k_checkPointHeight * globals::k_checkPointHeight)
+		globals::k_aiDistanceThreshold * globals::k_aiDistanceThreshold)
 	{
-		std::cout << "Close enough to the target, moving on" << std::endl;
 		client.m_nextAICheckpoint++;
-		if(client.m_nextAICheckpoint == 6)
+		if(client.m_nextAICheckpoint == globals::k_numCheckPoints)
 		{
 			client.m_nextAICheckpoint = 0;
 		}
-
-		std::cout << "My next: " << client.m_nextAICheckpoint << std::endl;
-		
 	}
 
 	// Update the clients on the AI Move

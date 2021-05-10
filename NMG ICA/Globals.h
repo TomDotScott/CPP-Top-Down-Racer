@@ -17,9 +17,10 @@ namespace globals
 
 	constexpr int k_totalLaps = 1;
 	
-	constexpr int k_numCheckPoints = 6;
+	constexpr int k_numCheckPoints = 11;
 	constexpr float k_checkPointWidth = 50.f;
 	constexpr float k_checkPointHeight = 150.f;
+	constexpr float k_aiDistanceThreshold = 100.f;
 	
 	inline const std::string k_reservedServerUsername = "SERVER";
 

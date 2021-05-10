@@ -120,42 +120,82 @@ void Client::Update(const float deltaTime)
 
 void Client::Render(sf::RenderWindow& window)
 {
-	if (!m_gameStarted)
+	m_text.setFillColor(sf::Color::White);
+	
+	if (m_gameStarted)
+	{
+		if (m_gameOver)
+		{
+			for (int i = 0; i < m_finalPlayerOrder.size(); ++i)
+			{
+				std::string stringToDisplay;
+				switch (i)
+				{
+				case 0:
+					stringToDisplay = "1st: ";
+					break;
+				case 1:
+					stringToDisplay = "2nd: ";
+					break;
+				case 2:
+					stringToDisplay = "3rd: ";
+					break;
+				case 3:
+					stringToDisplay = "4th: ";
+					break;
+				default:
+					break;
+
+				}
+
+				m_text.setFillColor(m_finalPlayerOrder[i] == m_userName ? sf::Color::Green : sf::Color::White);
+				
+				m_text.setString(stringToDisplay + m_finalPlayerOrder[i]);
+
+				m_text.setPosition(
+					static_cast<float>(globals::k_screenWidth) / 2.f - m_text.getGlobalBounds().width / 2,
+					static_cast<float>(globals::k_screenHeight) / 2.f + static_cast<float>(i) * m_text.getGlobalBounds().height + 20.f
+				);
+
+				window.draw(m_text);
+			}
+		} else
+		{
+			m_background.Render(window);
+
+			for (auto& [username, player] : m_players)
+			{
+				// Render username above the player's car
+				m_text.setString(username);
+
+				m_text.setCharacterSize(15);
+
+				const sf::Vector2f& playerPosition = player.GetPosition();
+
+				m_text.setPosition(playerPosition.x - m_text.getGlobalBounds().width / 2, playerPosition.y - m_text.getGlobalBounds().height - 30);
+
+				window.draw(m_text);
+
+				player.Render(window);
+			}
+
+			m_text.setString("Laps: " + std::to_string(m_lapsCompleted + 1) + " / " + std::to_string(globals::k_totalLaps));
+
+			m_text.setCharacterSize(30);
+			m_text.setPosition(730.f, 25.f);
+			window.draw(m_text);
+
+			m_text.setString("Pos: " + std::to_string(m_positionInRace) + " / " + std::to_string(m_players.size()));
+			m_text.setPosition(730.f, 75.f);
+			window.draw(m_text);
+		}
+	} else
 	{
 		m_text.setPosition(
 			static_cast<float>(globals::k_screenWidth) / 2.f - m_text.getGlobalBounds().width / 2,
 			static_cast<float>(globals::k_screenHeight) / 2.f - m_text.getGlobalBounds().height
 		);
 
-		window.draw(m_text);
-	} else
-	{
-		m_background.Render(window);
-
-		for (auto& player : m_players)
-		{
-			// Render username above the player's car
-			m_text.setString(player.first);
-
-			m_text.setCharacterSize(15);
-
-			const sf::Vector2f& playerPosition = player.second.GetPosition();
-
-			m_text.setPosition(playerPosition.x - m_text.getGlobalBounds().width / 2, playerPosition.y - m_text.getGlobalBounds().height - 30);
-
-			window.draw(m_text);
-
-			player.second.Render(window);
-		}
-
-		m_text.setString("Laps: " + std::to_string(m_lapsCompleted + 1) + " / " + std::to_string(globals::k_totalLaps));
-
-		m_text.setCharacterSize(30);
-		m_text.setPosition(730.f, 25.f);
-		window.draw(m_text);
-
-		m_text.setString("Pos: " + std::to_string(m_positionInRace) + " / " + std::to_string(m_players.size()));
-		m_text.setPosition(730.f, 75.f);
 		window.draw(m_text);
 	}
 }
@@ -269,6 +309,22 @@ bool Client::ReceiveMessage()
 
 		m_positionInRace = inData.m_positionInRace;
 		break;
+	case eDataPacketType::e_RaceCompleted:
+		std::cout << "The server told me I have completed the race: " << std::endl;
+		break;
+	case eDataPacketType::e_GameOver:
+		std::cout << "The server told me that the game has finished and the final positions are: " << std::endl;
+
+		for (int i = 0; i < inData.m_placementOrder.m_racePositions.size(); ++i)
+		{
+			std::cout << i + 1 << ": " << inData.m_placementOrder.m_racePositions[i] << std::endl;
+		}
+
+		m_finalPlayerOrder = inData.m_placementOrder.m_racePositions;
+
+		m_gameOver = true;
+		break;
+
 	default:
 		break;
 	}
@@ -322,6 +378,7 @@ Client::Client(const std::string& username) :
 	m_packetTimer(0.f),
 	m_playerMoved(false),
 	m_gameStarted(false),
+	m_gameOver(false),
 	m_lapsCompleted(0),
 	m_positionInRace(0)
 {

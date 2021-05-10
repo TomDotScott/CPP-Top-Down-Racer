@@ -28,6 +28,7 @@ private:
 	bool m_playerMoved;
 
 	bool m_gameStarted;
+	bool m_gameOver;
 	int m_lapsCompleted;
 	int m_positionInRace;
 
@@ -35,6 +36,8 @@ private:
 	// TODO : Switch to a vector, it will make the code simpler
 	std::unordered_map<std::string, Player> m_players;
 
+	std::vector<std::string> m_finalPlayerOrder;
+	
 	sf::Texture m_carTexture;
 	Map m_background;
 	sf::Text m_text;

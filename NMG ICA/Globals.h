@@ -3,7 +3,7 @@
 
 namespace globals
 {
-	constexpr int k_playerAmount = 1;
+	constexpr int k_playerAmount = 2;
 	constexpr float k_carTrackSpeed = 150.f;
 	constexpr float k_carGrassSpeed = 50.f;
 	constexpr float k_carStartingRotation = 1.5708f;
@@ -14,7 +14,7 @@ namespace globals
 	constexpr float k_carOriginX = 10.f;
 	constexpr float k_carOriginY = 17.f;
 
-	constexpr int k_totalLaps = 4;
+	constexpr int k_totalLaps = 1;
 	
 	constexpr int k_numCheckPoints = 6;
 	constexpr float k_checkPointWidth = 50.f;

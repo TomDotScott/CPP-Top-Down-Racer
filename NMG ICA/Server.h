@@ -5,7 +5,6 @@
 #include <array>
 #include <SFML/Graphics/Rect.hpp>
 
-
 #include "Globals.h"
 #include "../Shared Files/Data.h"
 
@@ -32,6 +31,7 @@ struct Client
 	// Switched to an array of size 6 - map isn't cache friendly and it's heap allocated!
 	std::array<bool, globals::k_numCheckPoints> m_checkPointsPassed;
 	int m_lapsCompleted;
+	bool m_raceCompleted;
 };
 
 // TODO: Use UDP for connecting, TCP for everything else
@@ -64,6 +64,7 @@ private:
 
 	bool Initialise(unsigned short port);
 	void CheckForNewClients();
+	bool CheckGameOver();
 	void CheckCollisionsBetweenClients();
 	void WorkOutTrackPlacements();
 	int FindClientIndex(const std::string& username) const;

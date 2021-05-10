@@ -9,14 +9,14 @@ namespace
 {
 	const std::array<sf::Color, globals::k_playerAmount> CAR_COLOURS{
 		sf::Color(255, 0, 0),
-		//sf::Color(0, 0, 255),
+		sf::Color(0, 0, 255),
 		/*sf::Color(0, 255, 0),
 		sf::Color(255, 255, 0)*/
 	};
 
 	const std::array<sf::Vector2f, globals::k_playerAmount> STARTING_POSITIONS{
 		sf::Vector2f(779.f, 558.f),
-		//sf::Vector2f(779.f, 616.f),
+		sf::Vector2f(779.f, 616.f),
 		/*sf::Vector2f(772.f, 558.f),
 		sf::Vector2f(722.f, 616.f)*/
 	};
@@ -36,7 +36,8 @@ Client::Client(const sf::Vector2f& position, const float angle) :
 	m_position(position),
 	m_angle(angle),
 	m_checkPointsPassed(),
-	m_lapsCompleted(0)
+	m_lapsCompleted(0),
+	m_raceCompleted(false)
 {
 	for (int i = 0; i < globals::k_numCheckPoints; ++i)
 	{
@@ -86,7 +87,7 @@ int Client::HighestCheckPointPassed()
 
 void Client::PrintCheckPoints()
 {
-	for(int i = 0; i < m_checkPointsPassed.size(); ++i)
+	for (int i = 0; i < m_checkPointsPassed.size(); ++i)
 	{
 		std::cout << "Checkpoint: " << i << (m_checkPointsPassed[i] ? " passed" : " not passed") << std::endl;
 	}
@@ -269,6 +270,22 @@ void Server::CheckForNewClients()
 	}
 }
 
+bool Server::CheckGameOver()
+{
+	// See if every racer has won
+	bool gameOver = true;
+	for (const auto& racer : m_connectedClients)
+	{
+		if (!racer->m_raceCompleted)
+		{
+			std::cout << racer->m_username << " still hasn't finished the race! " << std::endl;
+			gameOver = false;
+		}
+	}
+
+	return gameOver;
+}
+
 void Server::CheckCollisionsBetweenClients()
 {
 	for (auto& client : m_connectedClients)
@@ -316,11 +333,11 @@ void Server::WorkOutTrackPlacements()
 	// Find out the previous positions
 	std::vector<std::string> previousPositions;
 
-	for(const auto& client : m_connectedClients)
+	for (const auto& client : m_connectedClients)
 	{
 		previousPositions.emplace_back(client->m_username);
 	}
-	
+
 	// STEP 1 - CHECK THE LAPS OF THE PLAYERS
 	std::sort(m_connectedClients.begin(), m_connectedClients.end(), Client::CompareByLap);
 
@@ -332,9 +349,9 @@ void Server::WorkOutTrackPlacements()
 
 	// STEP 5 - SEE IF THE POSITIONS HAVE CHANGED
 	bool positionsChanged = false;
-	for(int i = 0; i < previousPositions.size(); ++i)
+	for (int i = 0; i < previousPositions.size(); ++i)
 	{
-		if(m_connectedClients[i]->m_username != previousPositions[i])
+		if (m_connectedClients[i]->m_username != previousPositions[i])
 		{
 			positionsChanged = true;
 		}
@@ -399,20 +416,17 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 				if (client.m_lapsCompleted == 0 && client.m_checkPointsPassed[globals::k_numCheckPoints - 1])
 				{
 					client.m_checkPointsPassed[0] = true;
-					client.PrintCheckPoints();
-				}else if(client.m_checkPointsPassed[globals::k_numCheckPoints - 1])
+				} else if (client.m_checkPointsPassed[globals::k_numCheckPoints - 1])
 				{
 					client.m_checkPointsPassed[0] = true;
-					client.PrintCheckPoints();
 				}
 			} else
 			{
 				client.m_checkPointsPassed[i] = true;
-				client.PrintCheckPoints();
 			}
 
 			// See if all the checkpoints have been passed
-			if (client.AllCheckPointsPassed())
+			if (client.AllCheckPointsPassed() && client.m_lapsCompleted != globals::k_totalLaps)
 			{
 				std::cout << client.m_username << " has completed a lap!" << std::endl;
 
@@ -426,6 +440,11 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 				if (client.m_lapsCompleted == globals::k_totalLaps)
 				{
 					std::cout << client.m_username << " completed the race!" << std::endl;
+					client.m_raceCompleted = true;
+
+					// Tell the client that they completed the race
+					DataPacket raceCompletedDataPacket(eDataPacketType::e_RaceCompleted, globals::k_reservedServerUsername);
+					SendMessage(raceCompletedDataPacket, client.m_username);
 				}
 			}
 		}
@@ -485,6 +504,21 @@ void Server::Update(unsigned short port)
 						CheckIfClientHasPassedCheckPoint(*client);
 
 						WorkOutTrackPlacements();
+
+						if (CheckGameOver())
+						{
+							// record the final race order
+							std::vector<std::string> racePositions;
+							for (const auto& racer : m_connectedClients)
+							{
+								std::cout << racer->m_username << std::endl;
+								racePositions.emplace_back(racer->m_username);
+							}
+
+							DataPacket endOfMatchDataPacket(eDataPacketType::e_GameOver, globals::k_reservedServerUsername, racePositions);
+							BroadcastMessage(endOfMatchDataPacket);
+						}
+
 
 						break;
 					default:

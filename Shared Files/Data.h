@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <iostream>
 #include <SFML/Network/Packet.hpp>
 
 enum class eDataPacketType : uint8_t
@@ -18,7 +19,9 @@ enum class eDataPacketType : uint8_t
 	e_UpdatePosition,
 	e_CollisionData,
 	e_LapCompleted,
-	e_Overtaken
+	e_Overtaken,
+	e_RaceCompleted,
+	e_GameOver
 };
 
 // Sending enums via sf::Packet https://en.sfml-dev.org/forums/index.php?topic=17075.0
@@ -40,6 +43,39 @@ operator>>(sf::Packet& roPacket, T& reMsgType)
 	return roPacket;
 }
 
+struct PlacementOrder
+{
+	PlacementOrder()
+	{
+		for(int i = 0; i < globals::k_playerAmount; ++i)
+		{
+			m_racePositions.emplace_back("");
+		}
+	}
+	
+	PlacementOrder(const std::vector<std::string>& v) : m_racePositions(v){};
+	
+	std::vector<std::string> m_racePositions;
+};
+
+inline sf::Packet operator <<(sf::Packet& packet, const PlacementOrder& po)
+{
+	for (const auto& username : po.m_racePositions)
+	{
+		packet << username;
+	}
+	return packet;
+}
+
+inline sf::Packet operator >>(sf::Packet& packet, PlacementOrder& po)
+{
+	for (auto& username : po.m_racePositions)
+	{
+		packet >> username;
+	}
+	return packet;
+}
+
 struct DataPacket
 {
 	DataPacket() :
@@ -49,7 +85,8 @@ struct DataPacket
 		m_angle(0.f),
 		m_red(0),
 		m_green(0),
-		m_blue(0)
+		m_blue(0),
+		m_positionInRace(0)
 	{
 	}
 
@@ -61,7 +98,8 @@ struct DataPacket
 		m_angle(angle),
 		m_red(static_cast<uint8_t>(colour.r)),
 		m_green(static_cast<uint8_t>(colour.g)),
-		m_blue(static_cast<uint8_t>(colour.b))
+		m_blue(static_cast<uint8_t>(colour.b)),
+		m_positionInRace(0)
 	{
 	}
 
@@ -73,7 +111,8 @@ struct DataPacket
 		m_angle(0.f),
 		m_red(static_cast<uint8_t>(colour.r)),
 		m_green(static_cast<uint8_t>(colour.g)),
-		m_blue(static_cast<uint8_t>(colour.b))
+		m_blue(static_cast<uint8_t>(colour.b)),
+		m_positionInRace(0)
 	{
 	}
 
@@ -86,11 +125,12 @@ struct DataPacket
 		m_red(0),
 		m_green(0),
 		m_blue(0),
+		m_positionInRace(0),
 		m_playerCollidedWith(playerCollidedWith)
 	{
 	}
 
-	DataPacket(const eDataPacketType type, const std::string& username, int positionInRace) :
+	DataPacket(const eDataPacketType type, const std::string& username, const int positionInRace) :
 		m_type(type),
 		m_userName(username),
 		m_x(0.f),
@@ -100,6 +140,20 @@ struct DataPacket
 		m_green(0),
 		m_blue(0),
 		m_positionInRace(positionInRace)
+	{
+	}
+
+	DataPacket(const eDataPacketType type, const std::string& username, const std::vector<std::string>& placementOrder) :
+		m_type(type),
+		m_userName(username),
+		m_x(0.f),
+		m_y(0.f),
+		m_angle(0.f),
+		m_red(0),
+		m_green(0),
+		m_blue(0),
+		m_positionInRace(0),
+		m_placementOrder(placementOrder)
 	{
 	}
 
@@ -113,14 +167,17 @@ struct DataPacket
 	uint8_t m_blue;
 	int m_positionInRace;
 	std::string m_playerCollidedWith;
+	PlacementOrder m_placementOrder;
 };
 
 inline sf::Packet operator<<(sf::Packet& packet, const DataPacket& dp)
 {
-	return packet << dp.m_type << dp.m_userName << dp.m_x << dp.m_y << dp.m_angle << dp.m_red << dp.m_green << dp.m_blue << dp.m_positionInRace << dp.m_playerCollidedWith;
+	return packet << dp.m_type << dp.m_userName << dp.m_x << dp.m_y << dp.m_angle <<
+		dp.m_red << dp.m_green << dp.m_blue << dp.m_positionInRace << dp.m_playerCollidedWith << dp.m_placementOrder;
 }
 
 inline sf::Packet operator>>(sf::Packet& packet, DataPacket& dp)
 {
-	return packet >> dp.m_type >> dp.m_userName >> dp.m_x >> dp.m_y >> dp.m_angle >> dp.m_red >> dp.m_green >> dp.m_blue >> dp.m_positionInRace >> dp.m_playerCollidedWith;
+	return packet >> dp.m_type >> dp.m_userName >> dp.m_x >> dp.m_y >> dp.m_angle >>
+		dp.m_red >> dp.m_green >> dp.m_blue >> dp.m_positionInRace >> dp.m_playerCollidedWith >> dp.m_placementOrder;
 }

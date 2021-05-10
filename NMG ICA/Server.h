@@ -18,6 +18,7 @@ struct Client
 	bool AllCheckPointsPassed();
 	void ResetCheckPoints();
 	int HighestCheckPointPassed();
+	void PrintCheckPoints();
 	
 	static bool CompareByLap(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
 	static bool CompareByCheckPoints(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
@@ -41,13 +42,15 @@ public:
 
 	void Update(unsigned short port);
 
+	~Server() = default;
+	
 	// Non-copyable and non-moveable 
 	Server(const Server& other) = delete;
 	Server& operator=(const Server& other) = delete;
 
 	Server(Server&& other) = delete;
 	Server& operator=(Server&& other) = delete;
-
+	
 private:
 	sf::TcpListener m_listener;
 	sf::SocketSelector m_socketSelector;
@@ -58,6 +61,7 @@ private:
 	bool m_gameInProgress;
 
 	Server();
+
 	bool Initialise(unsigned short port);
 	void CheckForNewClients();
 	void CheckCollisionsBetweenClients();

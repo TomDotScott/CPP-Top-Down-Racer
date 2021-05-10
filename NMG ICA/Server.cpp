@@ -9,14 +9,14 @@ namespace
 {
 	const std::array<sf::Color, globals::k_playerAmount> CAR_COLOURS{
 		sf::Color(255, 0, 0),
-		sf::Color(0, 0, 255),
+		//sf::Color(0, 0, 255),
 		/*sf::Color(0, 255, 0),
 		sf::Color(255, 255, 0)*/
 	};
 
 	const std::array<sf::Vector2f, globals::k_playerAmount> STARTING_POSITIONS{
 		sf::Vector2f(779.f, 558.f),
-		sf::Vector2f(779.f, 616.f),
+		//sf::Vector2f(779.f, 616.f),
 		/*sf::Vector2f(772.f, 558.f),
 		sf::Vector2f(722.f, 616.f)*/
 	};
@@ -82,6 +82,14 @@ int Client::HighestCheckPointPassed()
 		}
 	}
 	return 0;
+}
+
+void Client::PrintCheckPoints()
+{
+	for(int i = 0; i < m_checkPointsPassed.size(); ++i)
+	{
+		std::cout << "Checkpoint: " << i << (m_checkPointsPassed[i] ? " passed" : " not passed") << std::endl;
+	}
 }
 
 bool Client::CompareByLap(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
@@ -391,10 +399,16 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 				if (client.m_lapsCompleted == 0 && client.m_checkPointsPassed[globals::k_numCheckPoints - 1])
 				{
 					client.m_checkPointsPassed[0] = true;
+					client.PrintCheckPoints();
+				}else if(client.m_checkPointsPassed[globals::k_numCheckPoints - 1])
+				{
+					client.m_checkPointsPassed[0] = true;
+					client.PrintCheckPoints();
 				}
 			} else
 			{
 				client.m_checkPointsPassed[i] = true;
+				client.PrintCheckPoints();
 			}
 
 			// See if all the checkpoints have been passed

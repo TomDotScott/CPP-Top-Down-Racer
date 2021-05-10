@@ -4,8 +4,13 @@ int main()
 {
 	auto s = Server::CreateServer(25565);
 
+	sf::Clock clock;
+	
 	while(true)
 	{
-		s->Update(25565);
+		sf::Time time = clock.restart();
+		const float deltaTime = time.asSeconds();
+		
+		s->Update(deltaTime);
 	}
 }

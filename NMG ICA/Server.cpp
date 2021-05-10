@@ -37,7 +37,8 @@ Client::Client(const sf::Vector2f& position, const float angle) :
 	m_angle(angle),
 	m_checkPointsPassed(),
 	m_lapsCompleted(0),
-	m_raceCompleted(false)
+	m_raceCompleted(false),
+	m_nextAICheckpoint(0)
 {
 	for (int i = 0; i < globals::k_numCheckPoints; ++i)
 	{
@@ -60,7 +61,6 @@ bool Client::AllCheckPointsPassed()
 			passedCheckPoints++;
 		}
 	}
-
 	return passedCheckPoints == globals::k_numCheckPoints;
 }
 
@@ -82,7 +82,7 @@ int Client::HighestCheckPointPassed()
 			return i;
 		}
 	}
-	return 0;
+	return -1;
 }
 
 void Client::PrintCheckPoints()
@@ -278,7 +278,6 @@ bool Server::CheckGameOver()
 	{
 		if (!racer->m_raceCompleted)
 		{
-			std::cout << racer->m_username << " still hasn't finished the race! " << std::endl;
 			gameOver = false;
 		}
 	}
@@ -370,6 +369,49 @@ void Server::WorkOutTrackPlacements()
 
 }
 
+void Server::AIMovement(const float deltaTime, Client& client) const
+{
+	const sf::Vector2f target(
+		LEVEL_CHECKPOINTS[client.m_nextAICheckpoint].left,
+		LEVEL_CHECKPOINTS[client.m_nextAICheckpoint].top
+	);
+
+	std::cout << "Moving to: " << target.x << " " << target.y << std::endl;
+
+	const float beta = client.m_angle - atan2(target.x - client.m_position.x, -target.y + client.m_position.y);
+
+	if (sin(beta) < 0)
+	{
+		client.m_angle += 3.14f * deltaTime;
+	} else
+	{
+		client.m_angle -= 3.14f * deltaTime;
+	}
+
+	client.m_position.x += sin(client.m_angle) * globals::k_carTrackSpeed * deltaTime;
+	client.m_position.y -= cos(client.m_angle) * globals::k_carTrackSpeed * deltaTime;
+
+	sf::Vector2f direction = target - client.m_position;
+
+	if (globals::sqr_magnitude(direction) <
+		globals::k_checkPointHeight * globals::k_checkPointHeight)
+	{
+		std::cout << "Close enough to the target, moving on" << std::endl;
+		client.m_nextAICheckpoint++;
+		if(client.m_nextAICheckpoint == 6)
+		{
+			client.m_nextAICheckpoint = 0;
+		}
+
+		std::cout << "My next: " << client.m_nextAICheckpoint << std::endl;
+		
+	}
+
+	// Update the clients on the AI Move
+	const DataPacket aiMovementDataPacket(eDataPacketType::e_UpdatePosition, client.m_username, client.m_position.x, client.m_position.y, client.m_angle);
+	BroadcastMessage(aiMovementDataPacket);
+}
+
 int Server::FindClientIndex(const std::string& username) const
 {
 	int index{ 0 };
@@ -409,6 +451,7 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 	// See if the player has overlapped the checkpoints
 	for (int i = 0; i < globals::k_numCheckPoints; ++i)
 	{
+
 		if (LEVEL_CHECKPOINTS[i].intersects(clientRect.getGlobalBounds()))
 		{
 			if (i == 0)
@@ -461,7 +504,7 @@ bool Server::SendMessage(const DataPacket& dataToSend, const std::string& receiv
 	return true;
 }
 
-void Server::Update(unsigned short port)
+void Server::Update(const float deltaTime)
 {
 	if (m_socketSelector.wait())
 	{
@@ -496,13 +539,12 @@ void Server::Update(unsigned short port)
 					switch (inData.m_type)
 					{
 					case eDataPacketType::e_UpdatePosition:
+
 						client->m_position = { inData.m_x, inData.m_y };
 						client->m_angle = inData.m_angle;
 
 						BroadcastMessage(inData, *client->m_socket);
-
 						CheckIfClientHasPassedCheckPoint(*client);
-
 						WorkOutTrackPlacements();
 
 						if (CheckGameOver())
@@ -518,8 +560,6 @@ void Server::Update(unsigned short port)
 							DataPacket endOfMatchDataPacket(eDataPacketType::e_GameOver, globals::k_reservedServerUsername, racePositions);
 							BroadcastMessage(endOfMatchDataPacket);
 						}
-
-
 						break;
 					default:
 						break;
@@ -554,7 +594,13 @@ void Server::Update(unsigned short port)
 
 					clientDisconnectedPkt << clientDisconnectedData;
 					BroadcastMessage(clientDisconnectedData);
+					continue;
 				}
+			}
+
+			if (client->m_raceCompleted)
+			{
+				AIMovement(deltaTime, *client);
 			}
 		}
 

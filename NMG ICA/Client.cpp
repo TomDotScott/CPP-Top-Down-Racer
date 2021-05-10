@@ -99,7 +99,7 @@ bool Client::Initialise(const unsigned short port)
 
 void Client::Update(const float deltaTime)
 {
-	if (m_gameStarted)
+	if (m_gameStarted && !m_completedRace)
 	{
 		m_players[m_userName].Update(deltaTime);
 		m_background.CheckCollisions(m_players[m_userName]);
@@ -311,6 +311,7 @@ bool Client::ReceiveMessage()
 		break;
 	case eDataPacketType::e_RaceCompleted:
 		std::cout << "The server told me I have completed the race: " << std::endl;
+		m_completedRace = true;
 		break;
 	case eDataPacketType::e_GameOver:
 		std::cout << "The server told me that the game has finished and the final positions are: " << std::endl;

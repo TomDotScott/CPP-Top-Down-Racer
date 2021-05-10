@@ -30,6 +30,7 @@ struct Client
 	
 	// Switched to an array of size 6 - map isn't cache friendly and it's heap allocated!
 	std::array<bool, globals::k_numCheckPoints> m_checkPointsPassed;
+	int m_nextAICheckpoint;
 	int m_lapsCompleted;
 	bool m_raceCompleted;
 };
@@ -40,7 +41,7 @@ class Server
 public:
 	static std::unique_ptr<Server> CreateServer(unsigned short port);
 
-	void Update(unsigned short port);
+	void Update(const float deltaTime);
 
 	~Server() = default;
 	
@@ -67,6 +68,7 @@ private:
 	bool CheckGameOver();
 	void CheckCollisionsBetweenClients();
 	void WorkOutTrackPlacements();
+	void AIMovement(float deltaTime, Client& client) const;
 	int FindClientIndex(const std::string& username) const;
 	bool IsUsernameTaken(const std::string& username) const;
 	void CheckIfClientHasPassedCheckPoint(Client& client);

@@ -28,7 +28,9 @@ private:
 	bool m_playerMoved;
 
 	bool m_gameStarted;
+	bool m_completedRace;
 	bool m_gameOver;
+	
 	int m_lapsCompleted;
 	int m_positionInRace;
 

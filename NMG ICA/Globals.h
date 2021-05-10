@@ -4,7 +4,8 @@
 namespace globals
 {
 	constexpr int k_playerAmount = 2;
-	constexpr float k_carTrackSpeed = 150.f;
+	// constexpr float k_carTrackSpeed = 150.f;
+	constexpr float k_carTrackSpeed = 300.f;
 	constexpr float k_carGrassSpeed = 50.f;
 	constexpr float k_carStartingRotation = 1.5708f;
 	
@@ -30,6 +31,11 @@ namespace globals
 	constexpr inline float sqr_magnitude(sf::Vector2f& v)
 	{
 		return(v.x * v.x + v.y * v.y);
+	}
+
+	inline float get_angle_rad(const sf::Vector2f& a, const sf::Vector2f& b)
+	{
+		return atan2f(b.y - a.y, b.x - a.x);
 	}
 	
 	template<typename T, typename Ty>

@@ -4,6 +4,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <array>
 #include <SFML/Graphics/Rect.hpp>
+#include <algorithm>
 
 #include "Globals.h"
 #include "../Shared Files/Data.h"
@@ -11,6 +12,8 @@
 struct Client
 {
 	Client(const sf::Vector2f& position, const float angle);
+
+	// TODO: Delete the copy assignment operator to avoid m_socket from leaking
 	
 	~Client();
 	
@@ -18,11 +21,8 @@ struct Client
 	void ResetCheckPoints();
 	int HighestCheckPointPassed();
 	void PrintCheckPoints();
-	
-	static bool CompareByLap(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
-	static bool CompareByCheckPoints(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
-	static bool CompareByDistance(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b);
-	
+
+	// TODO: Remove username - public variables in a struct shouldn't have m_
 	std::string m_username;
 	sf::TcpSocket* m_socket;
 	sf::Vector2f m_position;
@@ -73,7 +73,6 @@ private:
 	bool IsUsernameTaken(const std::string& username) const;
 	void CheckIfClientHasPassedCheckPoint(Client& client);
 	bool SendMessage(const DataPacket& dataToSend, const std::string& receiver);
-	bool BroadcastMessage(const DataPacket& dataToSend, sf::TcpSocket& sender) const;
 	bool BroadcastMessage(const DataPacket& dataToSend) const;
 	bool ReceiveMessage();
 };

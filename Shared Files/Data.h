@@ -167,7 +167,7 @@ struct DataPacket
 	uint8_t m_blue;
 	int m_positionInRace;
 	std::string m_playerCollidedWith;
-	PlacementOrder m_placementOrder;
+	PlacementOrder m_placementOrder; // TODO: add the default constructor to the initialiser lists 
 };
 
 inline sf::Packet operator<<(sf::Packet& packet, const DataPacket& dp)

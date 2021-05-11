@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include "../Shared Files/Data.h"
+#include <algorithm>
 
 namespace
 {
@@ -34,6 +35,52 @@ namespace
 	sf::FloatRect({ 434.f, 489.f }, globals::k_checkPointColliderSize),
 	sf::FloatRect({ 642.f, 508.f }, globals::k_checkPointColliderSize),
 	};
+
+	static bool compare_by_lap(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
+	{
+		return a->m_lapsCompleted > b->m_lapsCompleted;
+	}
+	
+	static bool compare_by_check_points(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
+	{
+		// Only compare checkpoints if the laps are the same
+		if (a->m_lapsCompleted == b->m_lapsCompleted)
+		{
+			// Find the index of the highest lap completed
+			const int aHighestCheckPoint = a->HighestCheckPointPassed();
+			const int bHighestCheckPoint = b->HighestCheckPointPassed();
+			return aHighestCheckPoint > bHighestCheckPoint;
+		}
+		return false;
+	}
+	
+	static bool compare_by_distance(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
+	{
+		if (a->m_lapsCompleted == b->m_lapsCompleted && a->HighestCheckPointPassed() == b->HighestCheckPointPassed())
+		{
+			// Calculate the Distance to the next checkpoint
+			const int highestCheckPoint = a->HighestCheckPointPassed();
+
+			sf::Vector2f nextCheckpointPosition;
+
+			if (highestCheckPoint == 5)
+				nextCheckpointPosition = sf::Vector2f(LEVEL_CHECKPOINTS[highestCheckPoint + 1].left, LEVEL_CHECKPOINTS[highestCheckPoint].top);
+			else
+				nextCheckpointPosition = sf::Vector2f(LEVEL_CHECKPOINTS[0].left, LEVEL_CHECKPOINTS[0].top);
+
+			// Find the distance to the next checkpoint
+			sf::Vector2f aC = nextCheckpointPosition - a->m_position;
+			sf::Vector2f bC = nextCheckpointPosition - b->m_position;
+
+			// Find the magnitude of the vectors
+			const float magAC = globals::sqr_magnitude(aC);
+			const float magBC = globals::sqr_magnitude(bC);
+
+			return magAC > magBC;
+
+		}
+		return false;
+	}
 }
 
 Client::Client(const sf::Vector2f& position, const float angle) :
@@ -80,7 +127,7 @@ void Client::ResetCheckPoints()
 
 int Client::HighestCheckPointPassed()
 {
-	for (int i = globals::k_numCheckPoints - 1; i <= 0; ++i)
+	for (int i = globals::k_numCheckPoints - 1; i >= 0; --i)
 	{
 		if (m_checkPointsPassed[i])
 		{
@@ -96,52 +143,6 @@ void Client::PrintCheckPoints()
 	{
 		std::cout << "Checkpoint: " << i << (m_checkPointsPassed[i] ? " passed" : " not passed") << std::endl;
 	}
-}
-
-bool Client::CompareByLap(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
-{
-	return a->m_lapsCompleted > b->m_lapsCompleted;
-}
-
-bool Client::CompareByCheckPoints(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
-{
-	// Only compare checkpoints if the laps are the same
-	if (a->m_lapsCompleted == b->m_lapsCompleted)
-	{
-		// Find the index of the highest lap completed
-		const int aHighestCheckPoint = a->HighestCheckPointPassed();
-		const int bHighestCheckPoint = b->HighestCheckPointPassed();
-		return aHighestCheckPoint > bHighestCheckPoint;
-	}
-	return false;
-}
-
-bool Client::CompareByDistance(std::unique_ptr<Client>& a, std::unique_ptr<Client>& b)
-{
-	if (a->m_lapsCompleted == b->m_lapsCompleted && a->HighestCheckPointPassed() == b->HighestCheckPointPassed())
-	{
-		// Calculate the Distance to the next checkpoint
-		const int highestCheckPoint = a->HighestCheckPointPassed();
-
-		sf::Vector2f nextCheckpointPosition;
-
-		if (highestCheckPoint == 5)
-			nextCheckpointPosition = sf::Vector2f(LEVEL_CHECKPOINTS[highestCheckPoint + 1].left, LEVEL_CHECKPOINTS[highestCheckPoint].top);
-		else
-			nextCheckpointPosition = sf::Vector2f(LEVEL_CHECKPOINTS[0].left, LEVEL_CHECKPOINTS[0].top);
-
-		// Find the distance to the next checkpoint
-		sf::Vector2f aC = nextCheckpointPosition - a->m_position;
-		sf::Vector2f bC = nextCheckpointPosition - b->m_position;
-
-		// Find the magnitude of the vectors
-		const float magAC = globals::sqr_magnitude(aC);
-		const float magBC = globals::sqr_magnitude(bC);
-
-		return magAC > magBC;
-
-	}
-	return false;
 }
 
 std::unique_ptr<Server> Server::CreateServer(const unsigned short port)
@@ -186,7 +187,6 @@ void Server::CheckForNewClients()
 		sf::Vector2f startingPosition = STARTING_POSITIONS[m_connectedClients.size()];
 
 		// Create a new connection
-
 		auto* newClient = new Client(startingPosition, globals::k_carStartingRotation);
 		if (m_listener.accept(*newClient->m_socket) == sf::Socket::Done)
 		{
@@ -207,14 +207,14 @@ void Server::CheckForNewClients()
 						// To tell the client that they are successful
 						sf::Packet outPacket;
 
-						DataPacket outData(
+						DataPacket outData{
 							eDataPacketType::e_UserNameConfirmation,
 							globals::k_reservedServerUsername,
 							startingPosition.x,
 							startingPosition.y,
 							globals::k_carStartingRotation,
 							colour
-						);
+						};
 
 						// Add the new client to the selector - this means we can update all clients
 						m_socketSelector.add(*newClient->m_socket);
@@ -229,21 +229,14 @@ void Server::CheckForNewClients()
 
 						newClient->m_socket->send(outPacket);
 
-						outPacket.clear();
-
-						// Tell the other clients that a new client has connected
-						const DataPacket updateClientDataPacket(
+						BroadcastMessage({
 							eDataPacketType::e_NewClient,
 							globals::k_reservedServerUsername,
 							startingPosition.x,
 							startingPosition.y,
 							globals::k_carStartingRotation,
-							colour
+							colour }
 						);
-
-						outPacket << updateClientDataPacket;
-
-						BroadcastMessage(updateClientDataPacket, *newClient->m_socket);
 					} else
 					{
 						std::cout << "A CLIENT WITH THE USERNAME: " << inData.m_userName << " ALREADY EXISTS..." << std::endl;
@@ -321,11 +314,9 @@ void Server::CheckCollisionsBetweenClients()
 				// If a collision occurred and was resolved, update the clients
 				if (collisionOccurred)
 				{
-					DataPacket playerOneCollisionData(eDataPacketType::e_CollisionData, client->m_username, client->m_position, otherClient->m_username);
-					SendMessage(playerOneCollisionData, client->m_username);
+					SendMessage({ eDataPacketType::e_CollisionData, client->m_username, client->m_position, otherClient->m_username }, client->m_username);
 
-					DataPacket playerTwoCollisionData(eDataPacketType::e_CollisionData, otherClient->m_username, otherClient->m_position, client->m_username);
-					SendMessage(playerTwoCollisionData, otherClient->m_username);
+					SendMessage({ eDataPacketType::e_CollisionData, otherClient->m_username, otherClient->m_position, client->m_username }, otherClient->m_username);
 				}
 			}
 		}
@@ -343,15 +334,15 @@ void Server::WorkOutTrackPlacements()
 	}
 
 	// STEP 1 - CHECK THE LAPS OF THE PLAYERS
-	std::sort(m_connectedClients.begin(), m_connectedClients.end(), Client::CompareByLap);
+	std::sort(m_connectedClients.begin(), m_connectedClients.end(), compare_by_lap);
 
 	// STEP 2 - CHECK WHICH CHECKPOINTS THEY HAVE PASSED
-	std::sort(m_connectedClients.begin(), m_connectedClients.end(), Client::CompareByCheckPoints);
+	std::sort(m_connectedClients.begin(), m_connectedClients.end(), compare_by_check_points);
 
 	// STEP 3 - CHECK DISTANCE BETWEEN THEM AND THE NEXT CHECKPOINT
-	std::sort(m_connectedClients.begin(), m_connectedClients.end(), Client::CompareByDistance);
+	std::sort(m_connectedClients.begin(), m_connectedClients.end(), compare_by_distance);
 
-	// STEP 5 - SEE IF THE POSITIONS HAVE CHANGED
+	// STEP 4 - SEE IF THE POSITIONS HAVE CHANGED
 	bool positionsChanged = false;
 	for (int i = 0; i < previousPositions.size(); ++i)
 	{
@@ -363,12 +354,11 @@ void Server::WorkOutTrackPlacements()
 
 	if (positionsChanged)
 	{
-		// STEP 4 - TELL THE CLIENTS WHICH PLACE THEY ARE IN
+		// STEP 5 - TELL THE CLIENTS WHICH PLACE THEY ARE IN
 		for (int i = 0; i < m_connectedClients.size(); ++i)
 		{
 			std::cout << "\tPosition " << i + 1 << " : " << m_connectedClients[i]->m_username << std::endl;
-			DataPacket overtakenDataPacket(eDataPacketType::e_Overtaken, globals::k_reservedServerUsername, i + 1);
-			SendMessage(overtakenDataPacket, m_connectedClients[i]->m_username);
+			SendMessage({ eDataPacketType::e_Overtaken, globals::k_reservedServerUsername, i + 1 }, m_connectedClients[i]->m_username);
 		}
 	}
 
@@ -400,34 +390,30 @@ void Server::AIMovement(const float deltaTime, Client& client) const
 		globals::k_aiDistanceThreshold * globals::k_aiDistanceThreshold)
 	{
 		client.m_nextAICheckpoint++;
-		if(client.m_nextAICheckpoint == globals::k_numCheckPoints)
+		if (client.m_nextAICheckpoint == globals::k_numCheckPoints)
 		{
 			client.m_nextAICheckpoint = 0;
 		}
 	}
 
 	// Update the clients on the AI Move
-	const DataPacket aiMovementDataPacket(eDataPacketType::e_UpdatePosition, client.m_username, client.m_position.x, client.m_position.y, client.m_angle);
-	BroadcastMessage(aiMovementDataPacket);
+	BroadcastMessage({ eDataPacketType::e_UpdatePosition, client.m_username, client.m_position.x, client.m_position.y, client.m_angle });
 }
 
 int Server::FindClientIndex(const std::string& username) const
 {
-	int index{ 0 };
-	for (const auto& client : m_connectedClients)
+	for (int i = 0; i < m_connectedClients.size(); ++i)
 	{
-		if (client->m_username == username)
+		if (m_connectedClients[i]->m_username == username)
 		{
-			return index;
+			return i;
 		}
-		index++;
 	}
-
 	return -1;
 }
 
 bool Server::IsUsernameTaken(const std::string& username) const
-{
+{	
 	for (const auto& client : m_connectedClients)
 	{
 		if (client->m_username == username)
@@ -473,8 +459,7 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 				std::cout << client.m_username << " has completed a lap!" << std::endl;
 
 				// Tell the client that they have completed a lap
-				DataPacket lapCompletedDataPacket(eDataPacketType::e_LapCompleted, globals::k_reservedServerUsername);
-				SendMessage(lapCompletedDataPacket, client.m_username);
+				SendMessage({ eDataPacketType::e_LapCompleted, globals::k_reservedServerUsername }, client.m_username);
 
 				client.m_lapsCompleted++;
 				client.ResetCheckPoints();
@@ -485,8 +470,7 @@ void Server::CheckIfClientHasPassedCheckPoint(Client& client)
 					client.m_raceCompleted = true;
 
 					// Tell the client that they completed the race
-					DataPacket raceCompletedDataPacket(eDataPacketType::e_RaceCompleted, globals::k_reservedServerUsername);
-					SendMessage(raceCompletedDataPacket, client.m_username);
+					SendMessage({ eDataPacketType::e_RaceCompleted, globals::k_reservedServerUsername }, client.m_username);
 				}
 			}
 		}
@@ -515,16 +499,14 @@ void Server::Update(const float deltaTime)
 			{
 				m_gameInProgress = true;
 				std::cout << globals::k_playerAmount << " have connected, starting the game..." << std::endl;
-
-				const DataPacket outDataPacket(eDataPacketType::e_StartGame, globals::k_reservedServerUsername);
-				BroadcastMessage(outDataPacket);
+				BroadcastMessage({ eDataPacketType::e_StartGame, globals::k_reservedServerUsername });
 			}
 		}
 
 		// Loop through each client and use our new, fancy, socket selector
 		for (auto& client : m_connectedClients)
 		{
-			if (client->m_socket && m_socketSelector.isReady(*client->m_socket))
+			if (client && client->m_socket && m_socketSelector.isReady(*client->m_socket))
 			{
 				sf::Packet inPacket;
 				const auto clientStatus = client->m_socket->receive(inPacket);
@@ -542,8 +524,13 @@ void Server::Update(const float deltaTime)
 						client->m_position = { inData.m_x, inData.m_y };
 						client->m_angle = inData.m_angle;
 
-						BroadcastMessage(inData, *client->m_socket);
+						if(BroadcastMessage(inData))
+						{
+							std::cout << "Error broadcasting messages to all clients" << std::endl;
+						}
+						
 						CheckIfClientHasPassedCheckPoint(*client);
+						
 						WorkOutTrackPlacements();
 
 						if (CheckGameOver())
@@ -556,8 +543,7 @@ void Server::Update(const float deltaTime)
 								racePositions.emplace_back(racer->m_username);
 							}
 
-							DataPacket endOfMatchDataPacket(eDataPacketType::e_GameOver, globals::k_reservedServerUsername, racePositions);
-							BroadcastMessage(endOfMatchDataPacket);
+							BroadcastMessage({ eDataPacketType::e_GameOver, globals::k_reservedServerUsername, racePositions });
 						}
 						break;
 					default:
@@ -576,7 +562,7 @@ void Server::Update(const float deltaTime)
 					client->m_socket->disconnect();
 
 					// Remove from the vector
-					int clientIndex = FindClientIndex(client->m_username);
+					const int clientIndex = FindClientIndex(client->m_username);
 
 					m_connectedClients.erase(m_connectedClients.begin() + clientIndex);
 
@@ -587,13 +573,8 @@ void Server::Update(const float deltaTime)
 					}
 
 					// Tell the other clients that a client disconnected
-					sf::Packet clientDisconnectedPkt;
-
-					DataPacket clientDisconnectedData(eDataPacketType::e_ClientDisconnected, disconnectedClientUsername);
-
-					clientDisconnectedPkt << clientDisconnectedData;
-					BroadcastMessage(clientDisconnectedData);
-					continue;
+					BroadcastMessage({ eDataPacketType::e_ClientDisconnected, disconnectedClientUsername });
+					return;
 				}
 			}
 
@@ -608,27 +589,6 @@ void Server::Update(const float deltaTime)
 	}
 }
 
-bool Server::BroadcastMessage(const DataPacket& dataToSend, sf::TcpSocket& sender) const
-{
-	sf::Packet sendPacket;
-	sendPacket << dataToSend;
-
-	// update the other connected clients
-	for (const auto& client : m_connectedClients)
-	{
-		// Make sure not to send the client their own data!
-		if (client->m_username != dataToSend.m_userName)
-		{
-			if (dataToSend.m_userName != globals::k_reservedServerUsername)
-			{
-				client->m_socket->send(sendPacket);
-			}
-		}
-	}
-
-	return true;
-}
-
 bool Server::BroadcastMessage(const DataPacket& dataToSend) const
 {
 	sf::Packet sendPacket;
@@ -637,9 +597,14 @@ bool Server::BroadcastMessage(const DataPacket& dataToSend) const
 	// update the other connected clients
 	for (const auto& client : m_connectedClients)
 	{
-		if (client->m_socket->send(sendPacket) != sf::Socket::Done)
+		// Make sure not to send the client their own data!
+		//if (client->m_username != dataToSend.m_userName && !client->m_raceCompleted)
 		{
-			std::cout << "Error sending message to " << client->m_username << std::endl;
+			if (client->m_socket->send(sendPacket) != sf::Socket::Done)
+			{
+				std::cout << "Error sending message to " << client->m_username << std::endl;
+				return false;
+			}
 		}
 	}
 	return true;
@@ -648,28 +613,5 @@ bool Server::BroadcastMessage(const DataPacket& dataToSend) const
 
 bool Server::ReceiveMessage()
 {
-
-	/*sf::Packet p;
-
-	if (m_socketSelector.receive(p) != sf::Socket::Done)
-	{
-		return false;
-	}
-
-	float x, y;
-
-	p >> x >> y;
-
-	const sf::Vector2f playerPos(x, y);
-
-	if (playerPos != m_prevPlayerPosition)
-	{
-		std::cout << "Data received from the client measuring " << p.getDataSize() << " bytes" << std::endl;
-
-		std::cout << "The shape is at: " << x << ", " << y << std::endl;
-	}
-
-	m_prevPlayerPosition = playerPos;*/
-
 	return true;
 }

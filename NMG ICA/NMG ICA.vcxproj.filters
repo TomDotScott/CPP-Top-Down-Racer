@@ -29,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Shared Files\Data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -42,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

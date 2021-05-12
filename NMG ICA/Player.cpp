@@ -1,8 +1,15 @@
 ﻿#include "Player.h"
-#include <iostream>
+#include "Globals.h"
+Player::Player() :
+	m_speed(globals::cars::k_carTrackSpeed),
+	m_position(400.f, 300.f),
+	m_velocity(0.f, 0.f),
+	m_angle(0.f)
+{
+}
 
 Player::Player(const sf::Texture& textureData) :
-	m_speed(globals::k_carTrackSpeed),
+	m_speed(globals::cars::k_carTrackSpeed),
 	m_position(400.f, 300.f),
 	m_velocity(0.f, 0.f),
 	m_angle(0.f)
@@ -10,35 +17,6 @@ Player::Player(const sf::Texture& textureData) :
 	m_sprite.setTexture(textureData);
 	m_sprite.setOrigin(10.f, 17.f);
 }
-
-bool Player::Input(const float deltaTime)
-{	
-	bool hasPlayerMoved = false;
-	
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-	{
-		ChangeAngle(-3.14f * deltaTime);
-		hasPlayerMoved = true;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-	{
-		ChangeAngle(3.14f * deltaTime);
-		hasPlayerMoved = true;
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-	{
-		ChangeVelocity(0, -m_speed * deltaTime);
-		hasPlayerMoved = true;
-	} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-	{
-		ChangeVelocity(0, m_speed * deltaTime);
-		hasPlayerMoved = true;
-	}
-
-	return hasPlayerMoved;
-}
-
 
 void Player::Update(const float deltaTime)
 {
@@ -58,15 +36,15 @@ void Player::Update(const float deltaTime)
 	{
 		m_position.y = 0;
 	}
-	if (m_position.x > globals::k_screenWidth)
+	if (m_position.x > globals::game::k_screenWidth)
 	{
-		m_position.x = globals::k_screenWidth;
+		m_position.x = globals::game::k_screenWidth;
 	}
-	if (m_position.y > globals::k_screenHeight)
+	if (m_position.y > globals::game::k_screenHeight)
 	{
-		m_position.y = globals::k_screenHeight;
+		m_position.y = globals::game::k_screenHeight;
 	}
-	
+
 	m_velocity = { 0.f, 0.f };
 }
 
@@ -118,12 +96,12 @@ void Player::ChangeAngle(const float deltaAngle)
 	m_angle += deltaAngle;
 }
 
+float Player::GetSpeed() const
+{
+	return m_speed;
+}
+
 void Player::SetSpeed(const float speed)
 {
 	m_speed = speed;
-}
-
-sf::FloatRect Player::GetGlobalBounds() const
-{
-	return m_sprite.getGlobalBounds();
 }

@@ -1,9 +1,13 @@
-﻿#include "Server.h"
+﻿#include <cassert>
+
+#include "Server.h"
 
 int main()
 {
 	auto s = Server::CreateServer(25565);
 
+	assert(s);
+	
 	sf::Clock clock;
 	
 	while(true)

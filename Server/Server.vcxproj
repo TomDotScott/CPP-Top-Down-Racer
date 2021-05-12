@@ -141,10 +141,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\NMG ICA\ClientSnapshot.h" />
     <ClInclude Include="..\NMG ICA\Server.h" />
     <ClInclude Include="..\Shared Files\Data.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\NMG ICA\ClientSnapshot.cpp" />
     <ClCompile Include="..\NMG ICA\Server.cpp" />
     <ClCompile Include="..\NMG ICA\ServerMain.cpp" />
   </ItemGroup>

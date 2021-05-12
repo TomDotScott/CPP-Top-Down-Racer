@@ -1,78 +1,128 @@
 ﻿#pragma once
-#include <unordered_map>
 #include <SFML/Network.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <array>
-#include <SFML/Graphics/Rect.hpp>
-#include <algorithm>
 
-#include "Globals.h"
+
+#include "ClientSnapshot.h"
 #include "../Shared Files/Data.h"
 
-struct Client
-{
-	Client(const sf::Vector2f& position, const float angle);
-
-	// TODO: Delete the copy assignment operator to avoid m_socket from leaking
-	
-	~Client();
-	
-	bool AllCheckPointsPassed();
-	void ResetCheckPoints();
-	int HighestCheckPointPassed();
-	void PrintCheckPoints();
-
-	// TODO: Remove username - public variables in a struct shouldn't have m_
-	std::string m_username;
-	sf::TcpSocket* m_socket;
-	sf::Vector2f m_position;
-	float m_angle;
-	
-	// Switched to an array of size 6 - map isn't cache friendly and it's heap allocated!
-	std::array<bool, globals::k_numCheckPoints> m_checkPointsPassed;
-	int m_nextAICheckpoint;
-	int m_lapsCompleted;
-	bool m_raceCompleted;
-};
-
-// TODO: Use UDP for connecting, TCP for everything else
+/**
+ * \brief The Server of the racing game
+ */
 class Server
 {
 public:
+	/**
+	 * \brief Returns a heap allocated Server object if initialisation was successful
+	 * \param port The port to host the server on via TCP
+	 * \return A unique_ptr if initialisation was successful, nullptr if not
+	 */
 	static std::unique_ptr<Server> CreateServer(unsigned short port);
 
+	/**
+	 * \brief Updates the AI drivers in the game
+	 * \param deltaTime The time difference between update loops,
+	 * for frame-rate independence
+	 */
 	void Update(const float deltaTime);
-
-	~Server() = default;
 	
-	// Non-copyable and non-moveable 
+	// Non-copyable and non-moveable
 	Server(const Server& other) = delete;
 	Server& operator=(const Server& other) = delete;
 
 	Server(Server&& other) = delete;
 	Server& operator=(Server&& other) = delete;
-	
+
+	~Server() = default;
+
 private:
+	// The listener for the TCP sockets, to establish and maintain a connection
 	sf::TcpListener m_listener;
+
+	// The socket selector object allows for multiple clients to connect
+	// to the server
 	sf::SocketSelector m_socketSelector;
 
-	// Moved from Unordered_Map to vector... The intent is made clearer as I am iterating over it
-	std::vector<std::unique_ptr<Client>> m_connectedClients;
+	// A vector of all of the connected clients in the game
+	std::vector<std::unique_ptr<ClientSnapshot>> m_connectedClients;
 
+	// A flag for whether the race has started or not
 	bool m_gameInProgress;
 
 	Server();
 
+	/**
+	 * \brief Attempts to initialise a Server object
+	 * \param port The port to bind the TCP Listener to 
+	 * \return True if the Server was successfully initialised
+	 */
 	bool Initialise(unsigned short port);
+
+	/**
+	 * \brief Scans the socket selector in case a new client wants
+	 * to connect to the game. Handles rejection if the server is full
+	 * or if a race is already in progress
+	 */
 	void CheckForNewClients();
+	
+	/**
+	 * \brief Checks to see if all of the racers have completed all the laps
+	 * \return True if the race has finished
+	 */
 	bool CheckGameOver();
+	
+	/**
+	 * \brief Handles collision between clients. Updates their position across all
+	 * clients when the collision is resolved
+	 */
 	void CheckCollisionsBetweenClients();
+
+	/**
+	 * \brief Calculates the current order of players in the race. I.e. who is First all the
+	 * way to who is last
+	 */
 	void WorkOutTrackPlacements();
-	void AIMovement(float deltaTime, Client& client) const;
-	int FindClientIndex(const std::string& username) const;
-	bool IsUsernameTaken(const std::string& username) const;
-	void CheckIfClientHasPassedCheckPoint(Client& client);
-	bool SendMessage(const DataPacket& dataToSend, const std::string& receiver);
-	bool BroadcastMessage(const DataPacket& dataToSend) const;
-	bool ReceiveMessage();
+	
+	/**
+	 * \brief Updates the AI controlled client
+	 * \param deltaTime The time between updates, for frame-rate independence
+	 * \param client The client that should be moved by the AI 
+	 */
+	void AIMovement(float deltaTime, ClientSnapshot& client) const;
+	
+	/**
+	 * \brief Finds the index of the client in the connectedClients vector
+	 * via their username
+	 * \param username The username to look for
+	 * \return The index of the username to look for, -1 if the username can't
+	 * be found
+	 */
+	[[nodiscard]] int FindClientIndex(const std::string& username) const;
+	
+	/**
+	 * \brief Finds out if the username is taken in the connectedClients vector
+	 * \param username The username to look for
+	 * \return True if the username is taken
+	 */
+	[[nodiscard]] bool IsUsernameTaken(const std::string& username) const;
+	
+	/**
+	 * \brief Handles collision between the clients and the checkpoints around the map
+	 * \param client The client to check collisions of
+	 */
+	void CheckIfClientHasPassedCheckPoint(ClientSnapshot& client);
+	
+	/**
+	 * \brief Sends a packet to a connected client via TCP
+	 * \param dataToSend The TcpDataPacket to send to the client
+	 * \param receiver The username of the recipient of the message
+	 * \return True if the message was sent correctly
+	 */
+	[[nodiscard]] bool SendMessage(const TcpDataPacket& dataToSend, const std::string& receiver);
+	
+	/**
+	 * \brief Broadcasts a packet to every connected client
+	 * \param dataToSend The TcpDataPacket to be sent to every connected client
+	 * \return True if the broadcast was sent correctly
+	 */
+	[[nodiscard]] bool BroadcastMessage(const TcpDataPacket& dataToSend) const;
 };

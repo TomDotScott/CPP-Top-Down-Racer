@@ -1,8 +1,10 @@
 #pragma once
-#include <cstdint>
-#include <iostream>
-#include <SFML/Network/Packet.hpp>
+#include <SFML/Graphics.hpp>
+#include "Globals.h"
 
+/**
+ * \brief The types of data sent via the TcpPacket struct
+ */
 enum class eDataPacketType : uint8_t
 {
 	e_None,
@@ -43,14 +45,15 @@ operator>>(sf::Packet& roPacket, T& reMsgType)
 	return roPacket;
 }
 
+/**
+ * \brief A holder for the final positions of the racers. The first element is first place,
+ * the last element came last in the race
+ */
 struct PlacementOrder
 {
 	PlacementOrder()
 	{
-		for(int i = 0; i < globals::k_playerAmount; ++i)
-		{
-			m_racePositions.emplace_back("");
-		}
+		m_racePositions.resize(globals::game::k_playerAmount);
 	}
 	
 	PlacementOrder(const std::vector<std::string>& v) : m_racePositions(v){};
@@ -76,9 +79,13 @@ inline sf::Packet operator >>(sf::Packet& packet, PlacementOrder& po)
 	return packet;
 }
 
-struct DataPacket
+/**
+ * \brief Common struct between the Server and the Client, the TcpDataPacket is used as a container
+ * for all of the data sent in the game
+ */
+struct TcpDataPacket
 {
-	DataPacket() :
+	TcpDataPacket() :
 		m_type(eDataPacketType::e_None),
 		m_x(0.f),
 		m_y(0.f),
@@ -90,7 +97,7 @@ struct DataPacket
 	{
 	}
 
-	DataPacket(const eDataPacketType type, const std::string& userName, const float x = 0.f, const float y = 0.f, const float angle = 0.f, const sf::Color& colour = sf::Color::Red) :
+	TcpDataPacket(const eDataPacketType type, const std::string& userName, const float x = 0.f, const float y = 0.f, const float angle = 0.f, const sf::Color& colour = sf::Color::Red) :
 		m_type(type),
 		m_userName(userName),
 		m_x(x),
@@ -103,7 +110,7 @@ struct DataPacket
 	{
 	}
 
-	DataPacket(const eDataPacketType type, const std::string& userName, const sf::Color& colour) :
+	TcpDataPacket(const eDataPacketType type, const std::string& userName, const sf::Color& colour) :
 		m_type(type),
 		m_userName(userName),
 		m_x(0.f),
@@ -116,7 +123,7 @@ struct DataPacket
 	{
 	}
 
-	DataPacket(const eDataPacketType type, const std::string& username, const sf::Vector2f& position, const std::string& playerCollidedWith) :
+	TcpDataPacket(const eDataPacketType type, const std::string& username, const sf::Vector2f& position, const std::string& playerCollidedWith) :
 		m_type(type),
 		m_userName(username),
 		m_x(position.x),
@@ -130,7 +137,7 @@ struct DataPacket
 	{
 	}
 
-	DataPacket(const eDataPacketType type, const std::string& username, const int positionInRace) :
+	TcpDataPacket(const eDataPacketType type, const std::string& username, const int positionInRace) :
 		m_type(type),
 		m_userName(username),
 		m_x(0.f),
@@ -143,7 +150,7 @@ struct DataPacket
 	{
 	}
 
-	DataPacket(const eDataPacketType type, const std::string& username, const std::vector<std::string>& placementOrder) :
+	TcpDataPacket(const eDataPacketType type, const std::string& username, const std::vector<std::string>& placementOrder) :
 		m_type(type),
 		m_userName(username),
 		m_x(0.f),
@@ -170,13 +177,13 @@ struct DataPacket
 	PlacementOrder m_placementOrder; // TODO: add the default constructor to the initialiser lists 
 };
 
-inline sf::Packet operator<<(sf::Packet& packet, const DataPacket& dp)
+inline sf::Packet operator<<(sf::Packet& packet, const TcpDataPacket& dp)
 {
 	return packet << dp.m_type << dp.m_userName << dp.m_x << dp.m_y << dp.m_angle <<
 		dp.m_red << dp.m_green << dp.m_blue << dp.m_positionInRace << dp.m_playerCollidedWith << dp.m_placementOrder;
 }
 
-inline sf::Packet operator>>(sf::Packet& packet, DataPacket& dp)
+inline sf::Packet operator>>(sf::Packet& packet, TcpDataPacket& dp)
 {
 	return packet >> dp.m_type >> dp.m_userName >> dp.m_x >> dp.m_y >> dp.m_angle >>
 		dp.m_red >> dp.m_green >> dp.m_blue >> dp.m_positionInRace >> dp.m_playerCollidedWith >> dp.m_placementOrder;

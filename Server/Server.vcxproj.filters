@@ -15,10 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\NMG ICA\Server.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Shared Files\Data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NMG ICA\ClientSnapshot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NMG ICA\Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -27,6 +30,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\NMG ICA\ServerMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NMG ICA\ClientSnapshot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

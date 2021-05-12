@@ -1,0 +1,191 @@
+\hypertarget{class_player}{}\doxysection{Player Class Reference}
+\label{class_player}\index{Player@{Player}}
+
+
+The \mbox{\hyperlink{class_player}{Player}} class holds all the information needed to control and draw the race cars for the game.  
+
+
+
+
+{\ttfamily \#include $<$Player.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_player_aead6c22a84f9e483ad7268bada7b0dad}\label{class_player_aead6c22a84f9e483ad7268bada7b0dad}} 
+{\bfseries Player} (const sf\+::\+Texture \&texture\+Data)
+\item 
+void \mbox{\hyperlink{class_player_ae6b2acaf61aae4df8e10f50ebbdf664d}{Update}} (float delta\+Time)
+\begin{DoxyCompactList}\small\item\em Updates the player object. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_player_a7f9c259a93c8a06c181f3d372a5b4ba1}{Render}} (sf\+::\+Render\+Window \&window)
+\begin{DoxyCompactList}\small\item\em Renders the player to the screen. \end{DoxyCompactList}\item 
+sf\+::\+Vector2f \mbox{\hyperlink{class_player_abdfbf2ec0ee2d2655345cbbe741d2048}{Get\+Position}} () const
+\item 
+void \mbox{\hyperlink{class_player_a2afc6a7622c4a8f31ac737ac64a1cb84}{Set\+Position}} (const sf\+::\+Vector2f \&position)
+\item 
+sf\+::\+Color \mbox{\hyperlink{class_player_acdaf8ac3442c6da72910e480649e9126}{Get\+Colour}} () const
+\item 
+void \mbox{\hyperlink{class_player_a00c910a45bd1e1cbd54eccdbbebb2112}{Set\+Colour}} (const sf\+::\+Color \&colour)
+\item 
+void \mbox{\hyperlink{class_player_ab57bddf927398988a373a418edf209f2}{Change\+Velocity}} (const float dx, const float dy)
+\begin{DoxyCompactList}\small\item\em Changes the velocity of the player. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_player_ab30899a81ddc643083c2b5d4d77a52fa}{Get\+Angle}} () const
+\item 
+void \mbox{\hyperlink{class_player_a9c5c315163ee457930b7ec7bfbedeef3}{Set\+Angle}} (const float angle)
+\item 
+void \mbox{\hyperlink{class_player_aa1f1077981489996cdc0ff7aaac7a35e}{Change\+Angle}} (const float delta\+Angle)
+\item 
+float \mbox{\hyperlink{class_player_a859e61a326e4700ad455be2efa887af9}{Get\+Speed}} () const
+\item 
+void \mbox{\hyperlink{class_player_acfc62d747467b6464b0610a59af01ecd}{Set\+Speed}} (const float speed)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The \mbox{\hyperlink{class_player}{Player}} class holds all the information needed to control and draw the race cars for the game. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_player_aa1f1077981489996cdc0ff7aaac7a35e}\label{class_player_aa1f1077981489996cdc0ff7aaac7a35e}} 
+\index{Player@{Player}!ChangeAngle@{ChangeAngle}}
+\index{ChangeAngle@{ChangeAngle}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{ChangeAngle()}{ChangeAngle()}}
+{\footnotesize\ttfamily void Player\+::\+Change\+Angle (\begin{DoxyParamCaption}\item[{const float}]{delta\+Angle }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}{Parameters}
+{\em delta\+Angle} & The change in angle, in Radians, of the player \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_player_ab57bddf927398988a373a418edf209f2}\label{class_player_ab57bddf927398988a373a418edf209f2}} 
+\index{Player@{Player}!ChangeVelocity@{ChangeVelocity}}
+\index{ChangeVelocity@{ChangeVelocity}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{ChangeVelocity()}{ChangeVelocity()}}
+{\footnotesize\ttfamily void Player\+::\+Change\+Velocity (\begin{DoxyParamCaption}\item[{const float}]{dx,  }\item[{const float}]{dy }\end{DoxyParamCaption})}
+
+
+
+Changes the velocity of the player. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em dx} & The difference in the x axis for the velocity \\
+\hline
+{\em dy} & The difference in the y axis for the velocity \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_player_ab30899a81ddc643083c2b5d4d77a52fa}\label{class_player_ab30899a81ddc643083c2b5d4d77a52fa}} 
+\index{Player@{Player}!GetAngle@{GetAngle}}
+\index{GetAngle@{GetAngle}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{GetAngle()}{GetAngle()}}
+{\footnotesize\ttfamily float Player\+::\+Get\+Angle (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+The current angle of the player 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_player_acdaf8ac3442c6da72910e480649e9126}\label{class_player_acdaf8ac3442c6da72910e480649e9126}} 
+\index{Player@{Player}!GetColour@{GetColour}}
+\index{GetColour@{GetColour}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{GetColour()}{GetColour()}}
+{\footnotesize\ttfamily sf\+::\+Color Player\+::\+Get\+Colour (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+The colour of the player 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_player_abdfbf2ec0ee2d2655345cbbe741d2048}\label{class_player_abdfbf2ec0ee2d2655345cbbe741d2048}} 
+\index{Player@{Player}!GetPosition@{GetPosition}}
+\index{GetPosition@{GetPosition}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{GetPosition()}{GetPosition()}}
+{\footnotesize\ttfamily sf\+::\+Vector2f Player\+::\+Get\+Position (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+The current position of the player 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_player_a859e61a326e4700ad455be2efa887af9}\label{class_player_a859e61a326e4700ad455be2efa887af9}} 
+\index{Player@{Player}!GetSpeed@{GetSpeed}}
+\index{GetSpeed@{GetSpeed}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{GetSpeed()}{GetSpeed()}}
+{\footnotesize\ttfamily float Player\+::\+Get\+Speed (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+The current speed of the player 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_player_a7f9c259a93c8a06c181f3d372a5b4ba1}\label{class_player_a7f9c259a93c8a06c181f3d372a5b4ba1}} 
+\index{Player@{Player}!Render@{Render}}
+\index{Render@{Render}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{Render()}{Render()}}
+{\footnotesize\ttfamily void Player\+::\+Render (\begin{DoxyParamCaption}\item[{sf\+::\+Render\+Window \&}]{window }\end{DoxyParamCaption})}
+
+
+
+Renders the player to the screen. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em window} & The Render\+Window to draw the map to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_player_a9c5c315163ee457930b7ec7bfbedeef3}\label{class_player_a9c5c315163ee457930b7ec7bfbedeef3}} 
+\index{Player@{Player}!SetAngle@{SetAngle}}
+\index{SetAngle@{SetAngle}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{SetAngle()}{SetAngle()}}
+{\footnotesize\ttfamily void Player\+::\+Set\+Angle (\begin{DoxyParamCaption}\item[{const float}]{angle }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}{Parameters}
+{\em angle} & The new angle, in Radians, to set the player \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_player_a00c910a45bd1e1cbd54eccdbbebb2112}\label{class_player_a00c910a45bd1e1cbd54eccdbbebb2112}} 
+\index{Player@{Player}!SetColour@{SetColour}}
+\index{SetColour@{SetColour}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{SetColour()}{SetColour()}}
+{\footnotesize\ttfamily void Player\+::\+Set\+Colour (\begin{DoxyParamCaption}\item[{const sf\+::\+Color \&}]{colour }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}{Parameters}
+{\em colour} & The new colour to set the player \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_player_a2afc6a7622c4a8f31ac737ac64a1cb84}\label{class_player_a2afc6a7622c4a8f31ac737ac64a1cb84}} 
+\index{Player@{Player}!SetPosition@{SetPosition}}
+\index{SetPosition@{SetPosition}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{SetPosition()}{SetPosition()}}
+{\footnotesize\ttfamily void Player\+::\+Set\+Position (\begin{DoxyParamCaption}\item[{const sf\+::\+Vector2f \&}]{position }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}{Parameters}
+{\em position} & The new position of the player \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_player_acfc62d747467b6464b0610a59af01ecd}\label{class_player_acfc62d747467b6464b0610a59af01ecd}} 
+\index{Player@{Player}!SetSpeed@{SetSpeed}}
+\index{SetSpeed@{SetSpeed}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{SetSpeed()}{SetSpeed()}}
+{\footnotesize\ttfamily void Player\+::\+Set\+Speed (\begin{DoxyParamCaption}\item[{const float}]{speed }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}{Parameters}
+{\em speed} & The new speed of the player \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_player_ae6b2acaf61aae4df8e10f50ebbdf664d}\label{class_player_ae6b2acaf61aae4df8e10f50ebbdf664d}} 
+\index{Player@{Player}!Update@{Update}}
+\index{Update@{Update}!Player@{Player}}
+\doxysubsubsection{\texorpdfstring{Update()}{Update()}}
+{\footnotesize\ttfamily void Player\+::\+Update (\begin{DoxyParamCaption}\item[{float}]{delta\+Time }\end{DoxyParamCaption})}
+
+
+
+Updates the player object. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em delta\+Time} & The time difference between frames for frame-\/rate independence \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Player.\+h\item 
+Player.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,119 @@
+\hypertarget{class_client}{}\doxysection{Client Class Reference}
+\label{class_client}\index{Client@{Client}}
+
+
+The \mbox{\hyperlink{class_client}{Client}} class acts as the controller for the game, it holds the player, map and communicates to the server.  
+
+
+
+
+{\ttfamily \#include $<$Client.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_client_a9d591e4ce95335306da1500129e225c9}{Input}} (float delta\+Time)
+\begin{DoxyCompactList}\small\item\em Handles input for the game. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_client_a620bf9aefaf2c43f6f1a0a4beb5d53e7}{Update}} (float delta\+Time)
+\begin{DoxyCompactList}\small\item\em Updates the objects in the game and communicates with the server. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_client_a7eb7321c74584200d6320f74fa299233}{Render}} (sf\+::\+Render\+Window \&window)
+\begin{DoxyCompactList}\small\item\em Renders the game to the screen. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_client_aa0e957c83d8eea27522a3ab684639bf7}{Set\+Game\+Font}} (const sf\+::\+Font \&font)
+\begin{DoxyCompactList}\small\item\em Sets the font to be used in the game. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static std\+::unique\+\_\+ptr$<$ \mbox{\hyperlink{class_client}{Client}} $>$ \mbox{\hyperlink{class_client_a292a1f0c819372e6b05296aee0105724}{Create\+Client}} (const std\+::string \&username, unsigned short port)
+\begin{DoxyCompactList}\small\item\em Returns a heap allocated \mbox{\hyperlink{class_client}{Client}} object if initialisation was successful. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The \mbox{\hyperlink{class_client}{Client}} class acts as the controller for the game, it holds the player, map and communicates to the server. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_client_a292a1f0c819372e6b05296aee0105724}\label{class_client_a292a1f0c819372e6b05296aee0105724}} 
+\index{Client@{Client}!CreateClient@{CreateClient}}
+\index{CreateClient@{CreateClient}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{CreateClient()}{CreateClient()}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$ \mbox{\hyperlink{class_client}{Client}} $>$ Client\+::\+Create\+Client (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{username,  }\item[{unsigned short}]{port }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Returns a heap allocated \mbox{\hyperlink{class_client}{Client}} object if initialisation was successful. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em username} & The chosen username of the client \\
+\hline
+{\em port} & The port to connect to the server on via TCP \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A unique\+\_\+ptr if initialisation was successful, nullptr if not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_client_a9d591e4ce95335306da1500129e225c9}\label{class_client_a9d591e4ce95335306da1500129e225c9}} 
+\index{Client@{Client}!Input@{Input}}
+\index{Input@{Input}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{Input()}{Input()}}
+{\footnotesize\ttfamily void Client\+::\+Input (\begin{DoxyParamCaption}\item[{float}]{delta\+Time }\end{DoxyParamCaption})}
+
+
+
+Handles input for the game. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em delta\+Time} & The time difference between frames, for frame-\/rate independence \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_client_a7eb7321c74584200d6320f74fa299233}\label{class_client_a7eb7321c74584200d6320f74fa299233}} 
+\index{Client@{Client}!Render@{Render}}
+\index{Render@{Render}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{Render()}{Render()}}
+{\footnotesize\ttfamily void Client\+::\+Render (\begin{DoxyParamCaption}\item[{sf\+::\+Render\+Window \&}]{window }\end{DoxyParamCaption})}
+
+
+
+Renders the game to the screen. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em window} & The Render\+Window to render to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_client_aa0e957c83d8eea27522a3ab684639bf7}\label{class_client_aa0e957c83d8eea27522a3ab684639bf7}} 
+\index{Client@{Client}!SetGameFont@{SetGameFont}}
+\index{SetGameFont@{SetGameFont}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{SetGameFont()}{SetGameFont()}}
+{\footnotesize\ttfamily void Client\+::\+Set\+Game\+Font (\begin{DoxyParamCaption}\item[{const sf\+::\+Font \&}]{font }\end{DoxyParamCaption})}
+
+
+
+Sets the font to be used in the game. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em font} & The chosen font \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_client_a620bf9aefaf2c43f6f1a0a4beb5d53e7}\label{class_client_a620bf9aefaf2c43f6f1a0a4beb5d53e7}} 
+\index{Client@{Client}!Update@{Update}}
+\index{Update@{Update}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{Update()}{Update()}}
+{\footnotesize\ttfamily void Client\+::\+Update (\begin{DoxyParamCaption}\item[{float}]{delta\+Time }\end{DoxyParamCaption})}
+
+
+
+Updates the objects in the game and communicates with the server. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em delta\+Time} & The time difference between frames, for frame-\/rate independence \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Client.\+h\item 
+Client.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,78 @@
+\hypertarget{class_server}{}\doxysection{Server Class Reference}
+\label{class_server}\index{Server@{Server}}
+
+
+The \mbox{\hyperlink{class_server}{Server}} of the racing game.  
+
+
+
+
+{\ttfamily \#include $<$Server.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_server_a523f2e902906ba30798f433802699481}{Update}} (const float delta\+Time)
+\begin{DoxyCompactList}\small\item\em Updates the AI drivers in the game. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_server_aca4a9834f8bf136619d3c4cdb1db4e1e}\label{class_server_aca4a9834f8bf136619d3c4cdb1db4e1e}} 
+{\bfseries Server} (const \mbox{\hyperlink{class_server}{Server}} \&other)=delete
+\item 
+\mbox{\Hypertarget{class_server_a2f1b8591b51b76336de1ef7aaa2e6e87}\label{class_server_a2f1b8591b51b76336de1ef7aaa2e6e87}} 
+\mbox{\hyperlink{class_server}{Server}} \& {\bfseries operator=} (const \mbox{\hyperlink{class_server}{Server}} \&other)=delete
+\item 
+\mbox{\Hypertarget{class_server_a75912e5c72969c3e7afcf62c25594505}\label{class_server_a75912e5c72969c3e7afcf62c25594505}} 
+{\bfseries Server} (\mbox{\hyperlink{class_server}{Server}} \&\&other)=delete
+\item 
+\mbox{\Hypertarget{class_server_ac5e7caa7269a32584f22b88dc0c62f39}\label{class_server_ac5e7caa7269a32584f22b88dc0c62f39}} 
+\mbox{\hyperlink{class_server}{Server}} \& {\bfseries operator=} (\mbox{\hyperlink{class_server}{Server}} \&\&other)=delete
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static std\+::unique\+\_\+ptr$<$ \mbox{\hyperlink{class_server}{Server}} $>$ \mbox{\hyperlink{class_server_acc255a2646598fb09a63ca05fbce8458}{Create\+Server}} (unsigned short port)
+\begin{DoxyCompactList}\small\item\em Returns a heap allocated \mbox{\hyperlink{class_server}{Server}} object if initialisation was successful. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The \mbox{\hyperlink{class_server}{Server}} of the racing game. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_server_acc255a2646598fb09a63ca05fbce8458}\label{class_server_acc255a2646598fb09a63ca05fbce8458}} 
+\index{Server@{Server}!CreateServer@{CreateServer}}
+\index{CreateServer@{CreateServer}!Server@{Server}}
+\doxysubsubsection{\texorpdfstring{CreateServer()}{CreateServer()}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$ \mbox{\hyperlink{class_server}{Server}} $>$ Server\+::\+Create\+Server (\begin{DoxyParamCaption}\item[{unsigned short}]{port }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Returns a heap allocated \mbox{\hyperlink{class_server}{Server}} object if initialisation was successful. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em port} & The port to host the server on via TCP \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A unique\+\_\+ptr if initialisation was successful, nullptr if not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_server_a523f2e902906ba30798f433802699481}\label{class_server_a523f2e902906ba30798f433802699481}} 
+\index{Server@{Server}!Update@{Update}}
+\index{Update@{Update}!Server@{Server}}
+\doxysubsubsection{\texorpdfstring{Update()}{Update()}}
+{\footnotesize\ttfamily void Server\+::\+Update (\begin{DoxyParamCaption}\item[{const float}]{delta\+Time }\end{DoxyParamCaption})}
+
+
+
+Updates the AI drivers in the game. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em delta\+Time} & The time difference between update loops, for frame-\/rate independence \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Server.\+h\item 
+Server.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,92 @@
+\hypertarget{struct_client_snapshot}{}\doxysection{Client\+Snapshot Struct Reference}
+\label{struct_client_snapshot}\index{ClientSnapshot@{ClientSnapshot}}
+
+
+The \mbox{\hyperlink{struct_client_snapshot}{Client\+Snapshot}} is a simplified version of the \mbox{\hyperlink{class_client}{Client}}, it is used by the server to keep track of the game state.  
+
+
+
+
+{\ttfamily \#include $<$Client\+Snapshot.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_a3c744011c861a7709392617b37dcd93d}\label{struct_client_snapshot_a3c744011c861a7709392617b37dcd93d}} 
+{\bfseries Client\+Snapshot} (const sf\+::\+Vector2f \&position, const float angle)
+\item 
+bool \mbox{\hyperlink{struct_client_snapshot_a71db00b596db2c9c7d67e4c795993296}{All\+Check\+Points\+Passed}} ()
+\begin{DoxyCompactList}\small\item\em Checks if all of the checkpoints have been passed by the client i.\+e. whether they have completed a lap. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{struct_client_snapshot_a6643f86a44bd8a2c2c35bbda32947b6a}\label{struct_client_snapshot_a6643f86a44bd8a2c2c35bbda32947b6a}} 
+void \mbox{\hyperlink{struct_client_snapshot_a6643f86a44bd8a2c2c35bbda32947b6a}{Reset\+Check\+Points}} ()
+\begin{DoxyCompactList}\small\item\em Resets each checkpoint back to false if the client has lapped. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{struct_client_snapshot_aceeb84393679c2416171481573a0e905}{Highest\+Check\+Point\+Passed}} ()
+\begin{DoxyCompactList}\small\item\em Finds the index of the highest checkpoint passed by the client. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{struct_client_snapshot_a04c6f78a6c558b2f36bffac136317c05}\label{struct_client_snapshot_a04c6f78a6c558b2f36bffac136317c05}} 
+void \mbox{\hyperlink{struct_client_snapshot_a04c6f78a6c558b2f36bffac136317c05}{Print\+Check\+Points}} ()
+\begin{DoxyCompactList}\small\item\em Prints the checkpoints visited by the client -\/ useful for debugging! \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_afe42cdd0e3c861259d5bce3e8e6bc83e}\label{struct_client_snapshot_afe42cdd0e3c861259d5bce3e8e6bc83e}} 
+std\+::string {\bfseries username}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_a6ffa07f8a5797f3c8253d18b7e19b000}\label{struct_client_snapshot_a6ffa07f8a5797f3c8253d18b7e19b000}} 
+sf\+::\+Tcp\+Socket $\ast$ {\bfseries socket}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_a7ae7f447b24fa361a5949247b6ca59af}\label{struct_client_snapshot_a7ae7f447b24fa361a5949247b6ca59af}} 
+sf\+::\+Vector2f {\bfseries position}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_ae4ea9ff22d5a561b4e5016aecc5cd218}\label{struct_client_snapshot_ae4ea9ff22d5a561b4e5016aecc5cd218}} 
+float {\bfseries angle}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_a1984c5e78c0f966f66d26bb0b7570aac}\label{struct_client_snapshot_a1984c5e78c0f966f66d26bb0b7570aac}} 
+std\+::array$<$ bool, globals\+::game\+::k\+\_\+num\+Check\+Points $>$ {\bfseries check\+Points\+Passed}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_a42e70eb8b7bedc24938a55174f5a6c88}\label{struct_client_snapshot_a42e70eb8b7bedc24938a55174f5a6c88}} 
+int {\bfseries next\+AICheckpoint}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_a40c457a95a4ae1ccb3377fcd8c174294}\label{struct_client_snapshot_a40c457a95a4ae1ccb3377fcd8c174294}} 
+int {\bfseries laps\+Completed}
+\item 
+\mbox{\Hypertarget{struct_client_snapshot_a2ab2a7216fc193ad32373f507c874281}\label{struct_client_snapshot_a2ab2a7216fc193ad32373f507c874281}} 
+bool {\bfseries race\+Completed}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The \mbox{\hyperlink{struct_client_snapshot}{Client\+Snapshot}} is a simplified version of the \mbox{\hyperlink{class_client}{Client}}, it is used by the server to keep track of the game state. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{struct_client_snapshot_a71db00b596db2c9c7d67e4c795993296}\label{struct_client_snapshot_a71db00b596db2c9c7d67e4c795993296}} 
+\index{ClientSnapshot@{ClientSnapshot}!AllCheckPointsPassed@{AllCheckPointsPassed}}
+\index{AllCheckPointsPassed@{AllCheckPointsPassed}!ClientSnapshot@{ClientSnapshot}}
+\doxysubsubsection{\texorpdfstring{AllCheckPointsPassed()}{AllCheckPointsPassed()}}
+{\footnotesize\ttfamily bool Client\+Snapshot\+::\+All\+Check\+Points\+Passed (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Checks if all of the checkpoints have been passed by the client i.\+e. whether they have completed a lap. 
+
+\begin{DoxyReturn}{Returns}
+True if they have passed all of the checkpoints in the game 
+\end{DoxyReturn}
+\mbox{\Hypertarget{struct_client_snapshot_aceeb84393679c2416171481573a0e905}\label{struct_client_snapshot_aceeb84393679c2416171481573a0e905}} 
+\index{ClientSnapshot@{ClientSnapshot}!HighestCheckPointPassed@{HighestCheckPointPassed}}
+\index{HighestCheckPointPassed@{HighestCheckPointPassed}!ClientSnapshot@{ClientSnapshot}}
+\doxysubsubsection{\texorpdfstring{HighestCheckPointPassed()}{HighestCheckPointPassed()}}
+{\footnotesize\ttfamily int Client\+Snapshot\+::\+Highest\+Check\+Point\+Passed (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Finds the index of the highest checkpoint passed by the client. 
+
+\begin{DoxyReturn}{Returns}
+The index of the highest checkpoint passed by the client, -\/1 if no checkpoints have been passed 
+\end{DoxyReturn}
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Client\+Snapshot.\+h\item 
+Client\+Snapshot.\+cpp\end{DoxyCompactItemize}

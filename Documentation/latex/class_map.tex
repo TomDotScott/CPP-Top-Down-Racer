@@ -1,0 +1,60 @@
+\hypertarget{class_map}{}\doxysection{Map Class Reference}
+\label{class_map}\index{Map@{Map}}
+
+
+The map game object is the racetrack itself. It can detect if a player is on the track or the grass and set their speed accordingly.  
+
+
+
+
+{\ttfamily \#include $<$Map.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_map_ad35a910a5621aaecca9ac176f5075dd2}{Check\+Collisions}} (\mbox{\hyperlink{class_player}{Player}} \&player) const
+\begin{DoxyCompactList}\small\item\em Checks a player\textquotesingle{}s collision with the map and sets their speed accordingly. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_map_a82a5e6e21efb51f64d62c26790f5fb86}{Render}} (sf\+::\+Render\+Window \&window) const
+\begin{DoxyCompactList}\small\item\em Renders the map to the screen. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The map game object is the racetrack itself. It can detect if a player is on the track or the grass and set their speed accordingly. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_map_ad35a910a5621aaecca9ac176f5075dd2}\label{class_map_ad35a910a5621aaecca9ac176f5075dd2}} 
+\index{Map@{Map}!CheckCollisions@{CheckCollisions}}
+\index{CheckCollisions@{CheckCollisions}!Map@{Map}}
+\doxysubsubsection{\texorpdfstring{CheckCollisions()}{CheckCollisions()}}
+{\footnotesize\ttfamily void Map\+::\+Check\+Collisions (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_player}{Player}} \&}]{player }\end{DoxyParamCaption}) const}
+
+
+
+Checks a player\textquotesingle{}s collision with the map and sets their speed accordingly. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em player} & The player\textquotesingle{}s collision to check \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_map_a82a5e6e21efb51f64d62c26790f5fb86}\label{class_map_a82a5e6e21efb51f64d62c26790f5fb86}} 
+\index{Map@{Map}!Render@{Render}}
+\index{Render@{Render}!Map@{Map}}
+\doxysubsubsection{\texorpdfstring{Render()}{Render()}}
+{\footnotesize\ttfamily void Map\+::\+Render (\begin{DoxyParamCaption}\item[{sf\+::\+Render\+Window \&}]{window }\end{DoxyParamCaption}) const}
+
+
+
+Renders the map to the screen. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em window} & The Render\+Window to draw the map to \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Map.\+h\item 
+Map.\+cpp\end{DoxyCompactItemize}
